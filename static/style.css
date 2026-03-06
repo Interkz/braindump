@@ -209,6 +209,8 @@ html, body {
 
 .topic-card {
   margin-bottom: 48px;
+  border-left: 3px solid var(--text-faint);
+  padding-left: 16px;
 }
 
 .topic-name {
