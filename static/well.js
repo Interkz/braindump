@@ -19,15 +19,30 @@ document.querySelector('.well-container')?.addEventListener('click', (e) => {
   INPUT?.focus();
 });
 
-// Handle enter key
+// Auto-resize textarea to fit content (up to 5 lines)
+function autoResize() {
+  if (!INPUT) return;
+  INPUT.style.height = 'auto';
+  INPUT.style.height = Math.min(INPUT.scrollHeight, parseFloat(getComputedStyle(INPUT).maxHeight)) + 'px';
+}
+
+function resetHeight() {
+  if (!INPUT) return;
+  INPUT.style.height = '';
+}
+
+INPUT?.addEventListener('input', autoResize);
+
+// Handle enter key — submit on Enter, newline on Shift+Enter
 INPUT?.addEventListener('keydown', async (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     const content = INPUT.value.trim();
     if (!content) return;
 
-    // Clear input immediately
+    // Clear input and reset height
     INPUT.value = '';
+    resetHeight();
 
     // Animate the drop
     animateDrop(content);
@@ -37,14 +52,17 @@ INPUT?.addEventListener('keydown', async (e) => {
   }
 });
 
-// Handle paste — auto-submit after a brief delay
+// Handle paste — auto-submit URLs after a brief delay
 INPUT?.addEventListener('paste', (e) => {
   setTimeout(() => {
     const content = INPUT.value.trim();
     if (content && (content.startsWith('http') || content.length > 100)) {
       INPUT.value = '';
+      resetHeight();
       animateDrop(content.length > 60 ? content.substring(0, 57) + '...' : content);
       sendDrop(content);
+    } else {
+      autoResize();
     }
   }, 100);
 });

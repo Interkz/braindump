@@ -3,14 +3,14 @@
 {% block content %}
 <div class="well-container">
     <div class="drop-zone">
-        <input
-            type="text"
+        <textarea
             class="drop-input"
             placeholder="drop something in..."
             autocomplete="off"
             autofocus
-        >
-        <div class="drop-hint">press enter — it falls into the well</div>
+            rows="1"
+        ></textarea>
+        <div class="drop-hint">enter to drop — shift+enter for new line</div>
     </div>
     <div class="the-void"></div>
     <div class="drop-counter"></div>

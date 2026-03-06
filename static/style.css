@@ -54,7 +54,12 @@ html, body {
   font-size: 18px;
   padding: 16px 0;
   outline: none;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, height 0.15s ease;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
+  height: calc(1.4em + 32px); /* single line + padding */
+  max-height: calc(1.4em * 5 + 32px); /* 5 lines + padding */
 }
 
 .drop-input:focus {
