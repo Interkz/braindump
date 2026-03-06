@@ -91,6 +91,70 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def merge_topics(source_topic_id: int, target_topic_id: int) -> dict:
+    conn = get_connection()
+    try:
+        source = conn.execute(
+            "SELECT * FROM topics WHERE id = ?", (source_topic_id,)
+        ).fetchone()
+        if not source:
+            raise ValueError(f"Source topic {source_topic_id} not found")
+
+        target = conn.execute(
+            "SELECT * FROM topics WHERE id = ?", (target_topic_id,)
+        ).fetchone()
+        if not target:
+            raise ValueError(f"Target topic {target_topic_id} not found")
+
+        # Find drops already linked to target (to avoid duplicates)
+        existing = conn.execute(
+            "SELECT drop_id FROM drop_topics WHERE topic_id = ?", (target_topic_id,)
+        ).fetchall()
+        existing_drop_ids = {r["drop_id"] for r in existing}
+
+        # Move non-duplicate drops from source to target
+        source_links = conn.execute(
+            "SELECT drop_id, relevance FROM drop_topics WHERE topic_id = ?",
+            (source_topic_id,),
+        ).fetchall()
+        for link in source_links:
+            if link["drop_id"] not in existing_drop_ids:
+                conn.execute(
+                    "UPDATE drop_topics SET topic_id = ? WHERE drop_id = ? AND topic_id = ?",
+                    (target_topic_id, link["drop_id"], source_topic_id),
+                )
+
+        # Delete remaining source links (duplicates)
+        conn.execute(
+            "DELETE FROM drop_topics WHERE topic_id = ?", (source_topic_id,)
+        )
+
+        # Combine summaries
+        source_summary = source["summary"]
+        target_summary = target["summary"]
+        if source_summary and target_summary:
+            combined = f"{target_summary}\n\n{source_summary}"
+        else:
+            combined = target_summary or source_summary
+
+        conn.execute(
+            "UPDATE topics SET summary = ?, updated_at = datetime('now') WHERE id = ?",
+            (combined, target_topic_id),
+        )
+
+        # Delete source topic
+        conn.execute("DELETE FROM topics WHERE id = ?", (source_topic_id,))
+
+        conn.commit()
+
+        updated = conn.execute(
+            "SELECT * FROM topics WHERE id = ?", (target_topic_id,)
+        ).fetchone()
+        return dict(updated)
+    finally:
+        conn.close()
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
