@@ -31,7 +31,7 @@ html, body {
   align-items: center;
   justify-content: flex-start;
   height: 100vh;
-  padding-top: 25vh;
+  padding-top: 15vh;
   position: relative;
 }
 
@@ -83,7 +83,7 @@ html, body {
 /* The void below the input */
 .the-void {
   position: absolute;
-  top: calc(25vh + 80px);
+  top: calc(15vh + 80px);
   left: 0;
   right: 0;
   bottom: 0;
@@ -93,7 +93,6 @@ html, body {
     var(--void-deep) 40%,
     #020202 100%
   );
-  pointer-events: none;
   overflow: hidden;
 }
 
@@ -127,7 +126,10 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   animation: fall 2.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-  pointer-events: none;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @keyframes fall {
@@ -240,6 +242,86 @@ html, body {
   color: var(--text-faint);
   font-family: var(--font);
   font-size: 14px;
+}
+
+/* === PINNED DROPS === */
+.pinned-drops {
+  width: 100%;
+  max-width: 600px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.pinned-drops.has-pins {
+  margin-bottom: 24px;
+}
+
+.pinned-header {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.pinned-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: var(--surface);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.pinned-content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.pin-btn:hover {
+  opacity: 1;
+}
+
+.pin-btn.pinned {
+  opacity: 0.7;
+}
+
+.pin-btn.pinned:hover {
+  opacity: 1;
+}
+
+/* Pin button on falling items */
+.falling-item .pin-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.falling-item:hover .pin-btn {
+  opacity: 0.6;
+}
+
+.falling-item:hover .pin-btn:hover {
+  opacity: 1;
 }
 
 /* === DROP COUNT (subtle) === */

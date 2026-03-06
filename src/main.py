@@ -50,6 +50,20 @@ async def get_drops(limit: int = 50, count_only: bool = False):
     return JSONResponse({"drops": drops})
 
 
+@app.post("/api/drops/{drop_id}/pin")
+async def toggle_pin(drop_id: int):
+    drop = db.toggle_pin(drop_id)
+    if not drop:
+        return JSONResponse({"error": "Drop not found"}, status_code=404)
+    return JSONResponse({"status": "ok", "drop": drop})
+
+
+@app.get("/api/drops/pinned")
+async def get_pinned():
+    drops = db.get_pinned_drops()
+    return JSONResponse({"drops": drops})
+
+
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()
