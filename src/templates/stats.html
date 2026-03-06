@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Stats — The Well{% endblock %}
+
+{% block content %}
+<div class="stats-container">
+    <div class="stats-header">well statistics</div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_drops }}</div>
+            <div class="stat-label">total drops</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.processed_drops }}</div>
+            <div class="stat-label">processed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.top_topics | length }}</div>
+            <div class="stat-label">topics</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-value--small">{{ stats.last_processed_at or 'never' }}</div>
+            <div class="stat-label">last processed</div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-section-title">drops per day (last 7 days)</div>
+        {% if stats.daily_drops %}
+        {% set max_count = stats.daily_drops | map(attribute='cnt') | max %}
+        <div class="bar-chart">
+            {% for day in stats.daily_drops %}
+            <div class="bar-row">
+                <div class="bar-label">{{ day.day[5:] }}</div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (day.cnt / max_count * 100) | round }}%"></div>
+                </div>
+                <div class="bar-value">{{ day.cnt }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">No drops in the last 7 days.</div>
+        {% endif %}
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-section-title">top topics</div>
+        {% if stats.top_topics %}
+        {% set max_topic = stats.top_topics[0].drop_count %}
+        <div class="bar-chart">
+            {% for topic in stats.top_topics %}
+            <div class="bar-row">
+                <div class="bar-label bar-label--wide">{{ topic.name }}</div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (topic.drop_count / max_topic * 100) | round }}%"></div>
+                </div>
+                <div class="bar-value">{{ topic.drop_count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">No topics yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-section-title">content types</div>
+        {% if stats.content_types %}
+        {% set type_total = stats.total_drops %}
+        <div class="type-breakdown">
+            {% for ct in stats.content_types %}
+            <div class="type-row">
+                <div class="type-name">{{ ct.content_type }}</div>
+                <div class="type-bar-track">
+                    <div class="bar-fill" style="width: {{ (ct.cnt / type_total * 100) | round }}%"></div>
+                </div>
+                <div class="type-stat">{{ ct.cnt }} <span class="type-pct">({{ (ct.cnt / type_total * 100) | round(1) }}%)</span></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">No drops yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

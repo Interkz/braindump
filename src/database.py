@@ -91,6 +91,61 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_stats() -> dict:
+    conn = get_connection()
+
+    total_drops = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()["cnt"]
+    processed_drops = conn.execute(
+        "SELECT COUNT(*) as cnt FROM drops WHERE processed = 1"
+    ).fetchone()["cnt"]
+
+    # Drops per day (last 7 days)
+    daily_drops = conn.execute("""
+        SELECT date(dropped_at) as day, COUNT(*) as cnt
+        FROM drops
+        WHERE dropped_at >= datetime('now', '-7 days')
+        GROUP BY date(dropped_at)
+        ORDER BY day
+    """).fetchall()
+    daily_drops = [dict(r) for r in daily_drops]
+
+    # Top topics by drop count
+    top_topics = conn.execute("""
+        SELECT t.name, COUNT(dt.drop_id) as drop_count
+        FROM topics t
+        JOIN drop_topics dt ON t.id = dt.topic_id
+        GROUP BY t.id
+        ORDER BY drop_count DESC
+        LIMIT 10
+    """).fetchall()
+    top_topics = [dict(r) for r in top_topics]
+
+    # Content type breakdown
+    content_types = conn.execute("""
+        SELECT content_type, COUNT(*) as cnt
+        FROM drops
+        GROUP BY content_type
+        ORDER BY cnt DESC
+    """).fetchall()
+    content_types = [dict(r) for r in content_types]
+
+    # Most recent processing time (latest topic update)
+    last_processed = conn.execute(
+        "SELECT updated_at FROM topics ORDER BY updated_at DESC LIMIT 1"
+    ).fetchone()
+    last_processed_at = last_processed["updated_at"] if last_processed else None
+
+    conn.close()
+    return {
+        "total_drops": total_drops,
+        "processed_drops": processed_drops,
+        "daily_drops": daily_drops,
+        "top_topics": top_topics,
+        "content_types": content_types,
+        "last_processed_at": last_processed_at,
+    }
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
