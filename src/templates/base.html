@@ -11,8 +11,38 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-brand">the well</a>
-        <a href="/findings" class="nav-link">findings</a>
+        <div class="nav-right">
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light mode"></button>
+            <a href="/findings" class="nav-link">findings</a>
+        </div>
     </nav>
+    <script>
+        // Theme toggle — runs early to prevent flash
+        (function() {
+            const toggle = document.getElementById('theme-toggle');
+            const saved = localStorage.getItem('theme');
+            if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+
+            function updateIcon() {
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                toggle.textContent = isLight ? '\u2600' : '\u263E';
+                toggle.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+            }
+            updateIcon();
+
+            toggle.addEventListener('click', () => {
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                if (isLight) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+                updateIcon();
+            });
+        })();
+    </script>
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
 </body>
