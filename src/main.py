@@ -70,6 +70,12 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+@app.get("/stats", response_class=HTMLResponse)
+async def stats_page(request: Request):
+    stats = db.get_stats()
+    return templates.TemplateResponse("stats.html", {"request": request, "stats": stats})
+
+
 @app.post("/api/process")
 async def trigger_processing():
     count = processor.process_drops()
