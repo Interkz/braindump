@@ -70,6 +70,17 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+@app.get("/api/search")
+async def search(q: str = ""):
+    if not q.strip():
+        return JSONResponse(
+            {"error": "Missing search query. Provide a 'q' parameter."},
+            status_code=400,
+        )
+    results = db.search(q)
+    return JSONResponse(results)
+
+
 @app.post("/api/process")
 async def trigger_processing():
     count = processor.process_drops()

@@ -37,8 +37,88 @@ def init_db():
             relevance REAL NOT NULL DEFAULT 1.0,
             PRIMARY KEY (drop_id, topic_id)
         );
+
+        -- FTS5 virtual tables for full-text search
+        CREATE VIRTUAL TABLE IF NOT EXISTS drops_fts USING fts5(
+            content,
+            content='drops',
+            content_rowid='id'
+        );
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS topics_fts USING fts5(
+            name,
+            summary,
+            content='topics',
+            content_rowid='id'
+        );
+
+        -- Triggers to keep drops_fts in sync
+        CREATE TRIGGER IF NOT EXISTS drops_fts_insert AFTER INSERT ON drops BEGIN
+            INSERT INTO drops_fts(rowid, content) VALUES (new.id, new.content);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS drops_fts_delete AFTER DELETE ON drops BEGIN
+            INSERT INTO drops_fts(drops_fts, rowid, content) VALUES('delete', old.id, old.content);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS drops_fts_update AFTER UPDATE ON drops BEGIN
+            INSERT INTO drops_fts(drops_fts, rowid, content) VALUES('delete', old.id, old.content);
+            INSERT INTO drops_fts(rowid, content) VALUES (new.id, new.content);
+        END;
+
+        -- Triggers to keep topics_fts in sync
+        CREATE TRIGGER IF NOT EXISTS topics_fts_insert AFTER INSERT ON topics BEGIN
+            INSERT INTO topics_fts(rowid, name, summary) VALUES (new.id, new.name, new.summary);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS topics_fts_delete AFTER DELETE ON topics BEGIN
+            INSERT INTO topics_fts(topics_fts, rowid, name, summary) VALUES('delete', old.id, old.name, old.summary);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS topics_fts_update AFTER UPDATE ON topics BEGIN
+            INSERT INTO topics_fts(topics_fts, rowid, name, summary) VALUES('delete', old.id, old.name, old.summary);
+            INSERT INTO topics_fts(rowid, name, summary) VALUES (new.id, new.name, new.summary);
+        END;
     """)
+    # Rebuild FTS indexes to sync with any existing data
+    conn.execute("INSERT INTO drops_fts(drops_fts) VALUES('rebuild')")
+    conn.execute("INSERT INTO topics_fts(topics_fts) VALUES('rebuild')")
+    conn.commit()
     conn.close()
+
+
+def _sanitize_fts_query(query: str) -> str:
+    """Quote each term to prevent FTS5 syntax injection."""
+    terms = query.strip().split()
+    if not terms:
+        return ""
+    return " ".join(f'"{term}"' for term in terms)
+
+
+def search(query: str) -> dict:
+    sanitized = _sanitize_fts_query(query)
+    if not sanitized:
+        return {"drops": [], "topics": []}
+    conn = get_connection()
+    drops = conn.execute("""
+        SELECT d.id, d.content, d.content_type, d.dropped_at, d.processed, f.rank
+        FROM drops_fts f
+        JOIN drops d ON d.id = f.rowid
+        WHERE drops_fts MATCH ?
+        ORDER BY f.rank
+    """, (sanitized,)).fetchall()
+    topics = conn.execute("""
+        SELECT t.id, t.name, t.summary, t.updated_at, f.rank
+        FROM topics_fts f
+        JOIN topics t ON t.id = f.rowid
+        WHERE topics_fts MATCH ?
+        ORDER BY f.rank
+    """, (sanitized,)).fetchall()
+    conn.close()
+    return {
+        "drops": [dict(r) for r in drops],
+        "topics": [dict(r) for r in topics],
+    }
 
 
 def classify_content(content: str) -> str:
