@@ -1,8 +1,9 @@
+import os
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "braindump.db"
+DB_PATH = Path(os.environ.get("BRAINDUMP_DB_PATH", Path(__file__).parent.parent / "braindump.db"))
 
 
 def get_connection() -> sqlite3.Connection:
@@ -106,3 +107,46 @@ def get_topic_with_drops(topic_id: int) -> dict | None:
     """, (topic_id,)).fetchall()
     conn.close()
     return {"topic": dict(topic), "drops": [dict(d) for d in drops]}
+
+
+def get_all_drops() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM drops ORDER BY dropped_at DESC"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_drops_grouped_by_topic() -> tuple[list[dict], list[str]]:
+    """Return (topics_with_drops, uncategorised_drop_contents)."""
+    conn = get_connection()
+    topics = conn.execute(
+        "SELECT id, name FROM topics ORDER BY name"
+    ).fetchall()
+
+    grouped = []
+    categorised_ids: set[int] = set()
+    for topic in topics:
+        rows = conn.execute("""
+            SELECT d.id, d.content FROM drops d
+            JOIN drop_topics dt ON d.id = dt.drop_id
+            WHERE dt.topic_id = ?
+            ORDER BY d.dropped_at DESC
+        """, (topic["id"],)).fetchall()
+        grouped.append({"name": topic["name"], "drops": [r["content"] for r in rows]})
+        categorised_ids.update(r["id"] for r in rows)
+
+    if categorised_ids:
+        placeholders = ",".join("?" * len(categorised_ids))
+        uncategorised = conn.execute(
+            f"SELECT content FROM drops WHERE id NOT IN ({placeholders}) ORDER BY dropped_at DESC",
+            list(categorised_ids),
+        ).fetchall()
+    else:
+        uncategorised = conn.execute(
+            "SELECT content FROM drops ORDER BY dropped_at DESC"
+        ).fetchall()
+    conn.close()
+
+    return grouped, [r["content"] for r in uncategorised]

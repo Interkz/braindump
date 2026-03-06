@@ -2,9 +2,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import json
 from pydantic import BaseModel
 
 from . import database as db
@@ -68,6 +69,36 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.get("/api/export")
+async def export_drops(format: str = "json"):
+    if format == "markdown":
+        grouped, uncategorised = db.get_drops_grouped_by_topic()
+        lines: list[str] = []
+        for topic in grouped:
+            lines.append(f"# {topic['name']}")
+            for drop in topic["drops"]:
+                lines.append(f"- {drop}")
+            lines.append("")
+        if uncategorised:
+            lines.append("# Uncategorised")
+            for drop in uncategorised:
+                lines.append(f"- {drop}")
+            lines.append("")
+        content = "\n".join(lines)
+        return Response(
+            content=content,
+            media_type="text/markdown",
+            headers={"Content-Disposition": "attachment; filename=braindump-export.md"},
+        )
+
+    drops = db.get_all_drops()
+    return Response(
+        content=json.dumps({"drops": drops}, default=str),
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=braindump-export.json"},
+    )
 
 
 @app.post("/api/process")
