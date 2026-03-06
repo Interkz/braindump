@@ -8,7 +8,7 @@
 
     {% if topics %}
         {% for topic in topics %}
-        <div class="topic-card">
+        <div class="topic-card" data-topic="{{ topic.name }}">
             <div class="topic-name">{{ topic.name }}</div>
             <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
             <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
@@ -20,4 +20,8 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/topic-colors.js"></script>
 {% endblock %}
