@@ -17,11 +17,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-  height: 100%;
+  min-height: 100%;
   background: var(--void);
   color: var(--text);
   font-family: var(--font-sans);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* === THE WELL === */
@@ -30,7 +30,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 100vh;
+  min-height: 100vh;
   padding-top: 25vh;
   position: relative;
 }
@@ -240,6 +240,78 @@ html, body {
   color: var(--text-faint);
   font-family: var(--font);
   font-size: 14px;
+}
+
+/* === RECENT DROPS (editable list) === */
+.recent-drops {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 600px;
+  padding: 24px 24px 0;
+  margin: 0 auto;
+}
+
+.drop-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--text-faint);
+  cursor: text;
+  transition: background 0.15s;
+}
+
+.drop-item:hover {
+  background: var(--surface-hover);
+}
+
+.drop-item-content {
+  flex: 1;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.drop-item-edit-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-faint);
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.drop-item:hover .drop-item-edit-icon {
+  opacity: 1;
+}
+
+.drop-item.editing {
+  background: var(--surface);
+}
+
+.drop-item-textarea {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 6px 8px;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+}
+
+.drop-item-textarea:focus {
+  border-color: var(--accent);
 }
 
 /* === DROP COUNT (subtle) === */

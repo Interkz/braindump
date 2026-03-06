@@ -50,6 +50,14 @@ async def get_drops(limit: int = 50, count_only: bool = False):
     return JSONResponse({"drops": drops})
 
 
+@app.put("/api/drops/{drop_id}")
+async def update_drop(drop_id: int, payload: DropRequest):
+    updated = db.update_drop(drop_id, payload.content.strip())
+    if not updated:
+        return JSONResponse({"error": "Drop not found"}, status_code=404)
+    return JSONResponse({"status": "ok", "drop": updated})
+
+
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()
