@@ -183,6 +183,11 @@ html, body {
   letter-spacing: 0.05em;
 }
 
+.nav-links {
+  display: flex;
+  gap: 10px;
+}
+
 .nav-link:hover {
   color: var(--text-dim);
   border-color: var(--text-dim);
@@ -240,6 +245,67 @@ html, body {
   color: var(--text-faint);
   font-family: var(--font);
   font-size: 14px;
+}
+
+/* === RECENT PAGE === */
+.recent-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 80px 24px 48px;
+  min-height: 100vh;
+}
+
+.recent-header {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 48px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.drop-row {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.drop-row-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.drop-badge {
+  font-family: var(--font);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--text-faint);
+  color: var(--text-dim);
+}
+
+.drop-badge--link {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+
+.drop-time {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.drop-content {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  word-break: break-word;
 }
 
 /* === DROP COUNT (subtle) === */

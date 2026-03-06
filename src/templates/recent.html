@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Recent Drops — The Well{% endblock %}
+
+{% block content %}
+<div class="recent-container">
+    <div class="recent-header">recent drops</div>
+
+    {% if drops %}
+        {% for drop in drops %}
+        <div class="drop-row">
+            <div class="drop-row-top">
+                <span class="drop-badge drop-badge--{{ drop.content_type }}">{{ drop.content_type }}</span>
+                <span class="drop-time">{{ drop.dropped_at }}</span>
+            </div>
+            <div class="drop-content">{{ drop.content }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            Nothing here yet. Drop some things into the well first.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
