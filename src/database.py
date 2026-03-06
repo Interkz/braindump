@@ -78,6 +78,15 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def delete_drop(drop_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.execute("DELETE FROM drops WHERE id = ?", (drop_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    conn.close()
+    return deleted
+
+
 def get_topics_with_summaries() -> list[dict]:
     conn = get_connection()
     rows = conn.execute("""
