@@ -8,10 +8,16 @@
 
     {% if topics %}
         {% for topic in topics %}
-        <div class="topic-card">
-            <div class="topic-name">{{ topic.name }}</div>
-            <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
-            <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
+        <div class="topic-card" data-topic-id="{{ topic.id }}">
+            <div class="topic-head" onclick="toggleTopic(this)">
+                <div>
+                    <div class="topic-name">{{ topic.name }}</div>
+                    <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
+                    <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
+                </div>
+                <div class="topic-toggle">&#9662;</div>
+            </div>
+            <div class="topic-drops" style="display:none;"></div>
         </div>
         {% endfor %}
     {% else %}
@@ -20,4 +26,142 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+async function toggleTopic(head) {
+    const card = head.closest('.topic-card');
+    const dropsContainer = card.querySelector('.topic-drops');
+    const toggle = card.querySelector('.topic-toggle');
+
+    if (dropsContainer.style.display !== 'none') {
+        dropsContainer.style.display = 'none';
+        toggle.classList.remove('open');
+        return;
+    }
+
+    toggle.classList.add('open');
+    const topicId = card.dataset.topicId;
+
+    try {
+        const resp = await fetch(`/api/findings/${topicId}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        renderDrops(dropsContainer, data.drops, topicId);
+        dropsContainer.style.display = 'block';
+    } catch (err) {
+        console.error('Failed to load drops:', err);
+    }
+}
+
+function renderDrops(container, drops, topicId) {
+    container.innerHTML = '';
+    container.dataset.topicId = topicId;
+
+    drops.forEach((drop) => {
+        const el = document.createElement('div');
+        el.className = 'drop-item';
+        el.draggable = true;
+        el.dataset.dropId = drop.id;
+        el.innerHTML =
+            '<div class="drag-handle" title="Drag to reorder">' +
+                '<svg width="10" height="16" viewBox="0 0 10 16">' +
+                    '<circle cx="2" cy="2" r="1.5" fill="currentColor"/>' +
+                    '<circle cx="8" cy="2" r="1.5" fill="currentColor"/>' +
+                    '<circle cx="2" cy="8" r="1.5" fill="currentColor"/>' +
+                    '<circle cx="8" cy="8" r="1.5" fill="currentColor"/>' +
+                    '<circle cx="2" cy="14" r="1.5" fill="currentColor"/>' +
+                    '<circle cx="8" cy="14" r="1.5" fill="currentColor"/>' +
+                '</svg>' +
+            '</div>' +
+            '<div class="drop-content">' + escapeHtml(drop.content) + '</div>';
+
+        el.addEventListener('dragstart', onDragStart);
+        el.addEventListener('dragover', onDragOver);
+        el.addEventListener('dragenter', onDragEnter);
+        el.addEventListener('dragleave', onDragLeave);
+        el.addEventListener('drop', onDrop);
+        el.addEventListener('dragend', onDragEnd);
+        container.appendChild(el);
+    });
+}
+
+function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+}
+
+/* --- HTML5 Drag and Drop --- */
+let draggedEl = null;
+
+function onDragStart(e) {
+    draggedEl = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.dataset.dropId);
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragEnter(e) {
+    e.preventDefault();
+    const target = this.closest('.drop-item');
+    if (target && target !== draggedEl) {
+        target.classList.add('drag-over');
+    }
+}
+
+function onDragLeave(e) {
+    const target = this.closest('.drop-item');
+    if (target) {
+        target.classList.remove('drag-over');
+    }
+}
+
+function onDrop(e) {
+    e.preventDefault();
+    const target = this.closest('.drop-item');
+    if (!target || target === draggedEl) return;
+    target.classList.remove('drag-over');
+
+    const container = target.parentNode;
+    const items = [...container.querySelectorAll('.drop-item')];
+    const dragIdx = items.indexOf(draggedEl);
+    const dropIdx = items.indexOf(target);
+
+    if (dragIdx < dropIdx) {
+        container.insertBefore(draggedEl, target.nextSibling);
+    } else {
+        container.insertBefore(draggedEl, target);
+    }
+
+    saveOrder(container);
+}
+
+function onDragEnd() {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    draggedEl = null;
+}
+
+async function saveOrder(container) {
+    const topicId = container.dataset.topicId;
+    const dropIds = [...container.querySelectorAll('.drop-item')].map(
+        el => parseInt(el.dataset.dropId, 10)
+    );
+
+    try {
+        await fetch(`/api/findings/${topicId}/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drop_ids: dropIds }),
+        });
+    } catch (err) {
+        console.error('Failed to save order:', err);
+    }
+}
+</script>
 {% endblock %}
