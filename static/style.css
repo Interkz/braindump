@@ -234,6 +234,81 @@ html, body {
   margin-top: 8px;
 }
 
+/* === TOPIC EXPAND/COLLAPSE === */
+.topic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.topic-toggle {
+  font-size: 14px;
+  color: var(--text-faint);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  margin-left: 16px;
+  margin-top: 2px;
+}
+
+.topic-toggle.open {
+  transform: rotate(180deg);
+}
+
+/* === DROPS LIST (within topic) === */
+.topic-drops {
+  margin-top: 16px;
+  padding-left: 0;
+}
+
+.drop-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: grab;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.drop-item:active {
+  cursor: grabbing;
+}
+
+.drag-handle {
+  color: var(--text-faint);
+  flex-shrink: 0;
+  padding: 2px 0;
+  cursor: grab;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+
+.drop-item:hover .drag-handle {
+  opacity: 1;
+}
+
+.drop-content {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Drag states */
+.drop-item.dragging {
+  opacity: 0.3;
+}
+
+.drop-item.drag-over {
+  border-color: var(--accent-dim);
+  background: var(--surface-hover);
+}
+
 .empty-state {
   text-align: center;
   padding: 120px 24px;

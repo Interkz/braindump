@@ -29,6 +29,10 @@ class DropRequest(BaseModel):
     content: str
 
 
+class ReorderRequest(BaseModel):
+    drop_ids: list[int]
+
+
 @app.get("/", response_class=HTMLResponse)
 async def well(request: Request):
     return templates.TemplateResponse("well.html", {"request": request})
@@ -68,6 +72,14 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.put("/api/findings/{topic_id}/reorder")
+async def reorder_drops(topic_id: int, payload: ReorderRequest):
+    success = db.reorder_topic_drops(topic_id, payload.drop_ids)
+    if not success:
+        return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse({"status": "ok"})
 
 
 @app.post("/api/process")

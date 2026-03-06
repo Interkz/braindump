@@ -35,9 +35,15 @@ def init_db():
             drop_id INTEGER NOT NULL REFERENCES drops(id) ON DELETE CASCADE,
             topic_id INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
             relevance REAL NOT NULL DEFAULT 1.0,
+            position INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY (drop_id, topic_id)
         );
     """)
+    # Migration: add position column if missing (existing databases)
+    try:
+        conn.execute("ALTER TABLE drop_topics ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.close()
 
 
@@ -98,11 +104,27 @@ def get_topic_with_drops(topic_id: int) -> dict | None:
         conn.close()
         return None
     drops = conn.execute("""
-        SELECT d.*, dt.relevance
+        SELECT d.*, dt.relevance, dt.position
         FROM drops d
         JOIN drop_topics dt ON d.id = dt.drop_id
         WHERE dt.topic_id = ?
-        ORDER BY dt.relevance DESC, d.dropped_at DESC
+        ORDER BY dt.position ASC, dt.relevance DESC, d.dropped_at DESC
     """, (topic_id,)).fetchall()
     conn.close()
     return {"topic": dict(topic), "drops": [dict(d) for d in drops]}
+
+
+def reorder_topic_drops(topic_id: int, drop_ids: list[int]) -> bool:
+    conn = get_connection()
+    topic = conn.execute("SELECT id FROM topics WHERE id = ?", (topic_id,)).fetchone()
+    if not topic:
+        conn.close()
+        return False
+    for position, drop_id in enumerate(drop_ids):
+        conn.execute(
+            "UPDATE drop_topics SET position = ? WHERE topic_id = ? AND drop_id = ?",
+            (position, topic_id, drop_id),
+        )
+    conn.commit()
+    conn.close()
+    return True
