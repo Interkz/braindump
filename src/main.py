@@ -1,8 +1,10 @@
+import io
+import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -27,6 +29,10 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 class DropRequest(BaseModel):
     content: str
+
+
+class ImportRequest(BaseModel):
+    drops: list[dict]
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -67,6 +73,24 @@ async def get_finding(topic_id: int):
     result = db.get_topic_with_drops(topic_id)
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse(result)
+
+
+@app.get("/api/export")
+async def export_data():
+    data = db.export_all()
+    content = json.dumps(data, indent=2, default=str)
+    stream = io.BytesIO(content.encode("utf-8"))
+    return StreamingResponse(
+        stream,
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=braindump-export.json"},
+    )
+
+
+@app.post("/api/import")
+async def import_data(payload: ImportRequest):
+    result = db.import_drops(payload.drops)
     return JSONResponse(result)
 
 

@@ -91,6 +91,45 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def export_all() -> dict:
+    conn = get_connection()
+    drops = conn.execute("SELECT * FROM drops ORDER BY dropped_at ASC").fetchall()
+    topics = conn.execute("SELECT * FROM topics ORDER BY id ASC").fetchall()
+    conn.close()
+    return {
+        "drops": [dict(d) for d in drops],
+        "topics": [dict(t) for t in topics],
+    }
+
+
+def import_drops(drops: list[dict]) -> dict:
+    conn = get_connection()
+    imported = 0
+    skipped = 0
+    seen: set[str] = set()
+
+    existing = conn.execute("SELECT content FROM drops").fetchall()
+    for row in existing:
+        seen.add(row["content"])
+
+    for drop in drops:
+        content = drop.get("content", "").strip()
+        if not content or content in seen:
+            skipped += 1
+            continue
+        seen.add(content)
+        content_type = drop.get("content_type") or classify_content(content)
+        conn.execute(
+            "INSERT INTO drops (content, content_type) VALUES (?, ?)",
+            (content, content_type),
+        )
+        imported += 1
+
+    conn.commit()
+    conn.close()
+    return {"imported": imported, "skipped": skipped}
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
