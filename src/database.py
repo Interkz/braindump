@@ -62,6 +62,21 @@ def insert_drop(content: str) -> dict:
     return dict(row)
 
 
+def update_drop(drop_id: int, content: str) -> dict | None:
+    conn = get_connection()
+    content_type = classify_content(content)
+    conn.execute(
+        "UPDATE drops SET content = ?, content_type = ? WHERE id = ?",
+        (content, content_type, drop_id),
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM drops WHERE id = ?", (drop_id,)).fetchone()
+    conn.close()
+    if not row:
+        return None
+    return dict(row)
+
+
 def count_drops() -> int:
     conn = get_connection()
     row = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()
