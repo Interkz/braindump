@@ -70,6 +70,20 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+class MergeRequest(BaseModel):
+    source_topic_id: int
+    target_topic_id: int
+
+
+@app.post("/api/topics/merge")
+async def merge_topics(payload: MergeRequest):
+    try:
+        target = db.merge_topics(payload.source_topic_id, payload.target_topic_id)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=404)
+    return JSONResponse({"status": "ok", "target_topic": target})
+
+
 @app.post("/api/process")
 async def trigger_processing():
     count = processor.process_drops()
