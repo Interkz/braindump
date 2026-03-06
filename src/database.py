@@ -78,6 +78,21 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_status_counts() -> dict:
+    conn = get_connection()
+    total = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()["cnt"]
+    unprocessed = conn.execute(
+        "SELECT COUNT(*) as cnt FROM drops WHERE processed = 0"
+    ).fetchone()["cnt"]
+    topics = conn.execute("SELECT COUNT(*) as cnt FROM topics").fetchone()["cnt"]
+    conn.close()
+    return {
+        "total_drops": total,
+        "unprocessed_count": unprocessed,
+        "topics_count": topics,
+    }
+
+
 def get_topics_with_summaries() -> list[dict]:
     conn = get_connection()
     rows = conn.execute("""

@@ -1,4 +1,7 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, Request
@@ -10,14 +13,35 @@ from pydantic import BaseModel
 from . import database as db
 from . import processor
 
+log = logging.getLogger(__name__)
+
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent.parent / "static"
+
+PROCESS_INTERVAL = 5 * 60  # seconds
+
+_last_processed_at: str | None = None
+
+
+async def _periodic_processor():
+    global _last_processed_at
+    while True:
+        await asyncio.sleep(PROCESS_INTERVAL)
+        try:
+            count = await asyncio.to_thread(processor.process_drops)
+            _last_processed_at = datetime.now(timezone.utc).isoformat()
+            if count:
+                log.info("Periodic processing: %d drops processed", count)
+        except Exception:
+            log.exception("Periodic processing failed")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     db.init_db()
+    task = asyncio.create_task(_periodic_processor())
     yield
+    task.cancel()
 
 
 app = FastAPI(title="Braindump — The Well", lifespan=lifespan)
@@ -70,7 +94,21 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+@app.get("/api/status")
+async def status():
+    counts = db.get_status_counts()
+    return JSONResponse({
+        "status": "ok",
+        "total_drops": counts["total_drops"],
+        "topics_count": counts["topics_count"],
+        "unprocessed_count": counts["unprocessed_count"],
+        "last_processed_at": _last_processed_at,
+    })
+
+
 @app.post("/api/process")
 async def trigger_processing():
+    global _last_processed_at
     count = processor.process_drops()
+    _last_processed_at = datetime.now(timezone.utc).isoformat()
     return JSONResponse({"status": "ok", "processed": count})
