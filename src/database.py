@@ -21,7 +21,8 @@ def init_db():
             content TEXT NOT NULL,
             content_type TEXT NOT NULL DEFAULT 'text',
             dropped_at DATETIME NOT NULL DEFAULT (datetime('now')),
-            processed BOOLEAN NOT NULL DEFAULT 0
+            processed BOOLEAN NOT NULL DEFAULT 0,
+            pinned BOOLEAN NOT NULL DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS topics (
@@ -38,6 +39,12 @@ def init_db():
             PRIMARY KEY (drop_id, topic_id)
         );
     """)
+    # Migration: add pinned column to existing databases
+    try:
+        conn.execute("ALTER TABLE drops ADD COLUMN pinned BOOLEAN NOT NULL DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     conn.close()
 
 
@@ -73,6 +80,29 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     conn = get_connection()
     rows = conn.execute(
         "SELECT * FROM drops ORDER BY dropped_at DESC LIMIT ?", (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def toggle_pin(drop_id: int) -> dict | None:
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM drops WHERE id = ?", (drop_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    new_pinned = 0 if row["pinned"] else 1
+    conn.execute("UPDATE drops SET pinned = ? WHERE id = ?", (new_pinned, drop_id))
+    conn.commit()
+    updated = conn.execute("SELECT * FROM drops WHERE id = ?", (drop_id,)).fetchone()
+    conn.close()
+    return dict(updated)
+
+
+def get_pinned_drops() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM drops WHERE pinned = 1 ORDER BY dropped_at DESC"
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
