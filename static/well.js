@@ -19,6 +19,42 @@ document.querySelector('.well-container')?.addEventListener('click', (e) => {
   INPUT?.focus();
 });
 
+// Keyboard shortcuts (document-level)
+document.addEventListener('keydown', (e) => {
+  // Ctrl+K or / — focus input
+  if ((e.key === '/' || (e.ctrlKey && e.key === 'k')) && document.activeElement !== INPUT) {
+    e.preventDefault();
+    INPUT?.focus();
+    return;
+  }
+
+  // Escape — clear input
+  if (e.key === 'Escape' && INPUT) {
+    e.preventDefault();
+    INPUT.value = '';
+    INPUT.blur();
+    updateShortcutHints();
+    return;
+  }
+
+  // Tab — navigate to findings
+  if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    window.location.href = '/findings';
+    return;
+  }
+});
+
+// Show/hide shortcut hints based on input state
+const SHORTCUT_HINTS = document.querySelector('.shortcut-hints');
+
+function updateShortcutHints() {
+  if (!SHORTCUT_HINTS) return;
+  SHORTCUT_HINTS.style.opacity = INPUT && INPUT.value.length > 0 ? '0' : '';
+}
+
+INPUT?.addEventListener('input', updateShortcutHints);
+
 // Handle enter key
 INPUT?.addEventListener('keydown', async (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {

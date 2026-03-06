@@ -21,3 +21,14 @@
     {% endif %}
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    window.location.href = '/';
+  }
+});
+</script>
+{% endblock %}
