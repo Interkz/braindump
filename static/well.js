@@ -54,7 +54,8 @@ function animateDrop(text) {
 
   const item = document.createElement('div');
   item.className = 'falling-item';
-  item.textContent = text.length > 80 ? text.substring(0, 77) + '...' : text;
+  const display = text.length > 80 ? text.substring(0, 77) + '...' : text;
+  item.innerHTML = renderMarkdown(display);
   VOID.appendChild(item);
 
   // Remove after animation completes
