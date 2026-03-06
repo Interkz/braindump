@@ -1,0 +1,59 @@
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+
+from . import database as db
+
+TEMPLATES_DIR = Path(__file__).parent / "templates"
+STATIC_DIR = Path(__file__).parent.parent / "static"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db.init_db()
+    yield
+
+
+app = FastAPI(title="Braindump — The Well", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+
+class DropRequest(BaseModel):
+    content: str
+
+
+@app.get("/", response_class=HTMLResponse)
+async def well(request: Request):
+    return templates.TemplateResponse("well.html", {"request": request})
+
+
+@app.post("/api/drop")
+async def drop(payload: DropRequest):
+    drop = db.insert_drop(payload.content.strip())
+    return JSONResponse({"status": "ok", "drop": drop})
+
+
+@app.get("/api/drops")
+async def get_drops(limit: int = 50):
+    drops = db.get_recent_drops(limit)
+    return JSONResponse({"drops": drops})
+
+
+@app.get("/api/findings")
+async def get_findings():
+    topics = db.get_topics_with_summaries()
+    return JSONResponse({"topics": topics})
+
+
+@app.get("/api/findings/{topic_id}")
+async def get_finding(topic_id: int):
+    result = db.get_topic_with_drops(topic_id)
+    if not result:
+        return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse(result)

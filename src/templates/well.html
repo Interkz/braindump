@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="well-container">
+    <h1 class="well-title">the well</h1>
+    <form id="drop-form" class="drop-form">
+        <input
+            type="text"
+            id="drop-input"
+            name="content"
+            placeholder="drop something in..."
+            autocomplete="off"
+            autofocus
+        >
+    </form>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('drop-form');
+    const input = document.getElementById('drop-input');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const content = input.value.trim();
+        if (!content) return;
+
+        input.value = '';
+        await fetch('/api/drop', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+    });
+</script>
+{% endblock %}
