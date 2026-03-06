@@ -254,6 +254,40 @@ html, body {
   opacity: 0.5;
 }
 
+/* === MARKDOWN RENDERING === */
+.topic-summary code,
+.falling-item code {
+  background: var(--surface-hover);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--font);
+  font-size: 0.9em;
+}
+
+.topic-summary a,
+.falling-item a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.topic-summary a:hover {
+  text-decoration: underline;
+}
+
+.topic-summary ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.topic-summary li {
+  margin-bottom: 4px;
+}
+
+.topic-summary strong,
+.falling-item strong {
+  color: var(--text);
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 640px) {
   .well-container {

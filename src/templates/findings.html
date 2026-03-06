@@ -21,3 +21,12 @@
     {% endif %}
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script src="/static/markdown.js"></script>
+<script>
+document.querySelectorAll('.topic-summary').forEach(el => {
+  el.innerHTML = renderMarkdown(el.textContent);
+});
+</script>
+{% endblock %}
