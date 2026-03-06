@@ -40,9 +40,18 @@ async def drop(payload: DropRequest):
 
 
 @app.get("/api/drops")
-async def get_drops(limit: int = 50):
+async def get_drops(limit: int = 50, count_only: bool = False):
+    if count_only:
+        count = db.count_drops()
+        return JSONResponse({"count": count})
     drops = db.get_recent_drops(limit)
     return JSONResponse({"drops": drops})
+
+
+@app.get("/findings", response_class=HTMLResponse)
+async def findings_page(request: Request):
+    topics = db.get_topics_with_summaries()
+    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics})
 
 
 @app.get("/api/findings")

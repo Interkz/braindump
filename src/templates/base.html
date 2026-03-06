@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}The Well{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <nav class="nav">
+        <a href="/" class="nav-brand">the well</a>
+        <a href="/findings" class="nav-link">findings</a>
+    </nav>
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
 </body>

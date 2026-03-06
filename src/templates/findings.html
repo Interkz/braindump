@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Findings — The Well{% endblock %}
+
+{% block content %}
+<div class="findings-container">
+    <div class="findings-header">findings from the well</div>
+
+    {% if topics %}
+        {% for topic in topics %}
+        <div class="topic-card">
+            <div class="topic-name">{{ topic.name }}</div>
+            <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
+            <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            Nothing organized yet. Drop some things into the well first.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

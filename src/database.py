@@ -62,6 +62,13 @@ def insert_drop(content: str) -> dict:
     return dict(row)
 
 
+def count_drops() -> int:
+    conn = get_connection()
+    row = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()
+    conn.close()
+    return row["cnt"]
+
+
 def get_recent_drops(limit: int = 50) -> list[dict]:
     conn = get_connection()
     rows = conn.execute(
