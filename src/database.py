@@ -78,6 +78,32 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def delete_drop(drop_id: int) -> bool:
+    conn = get_connection()
+    row = conn.execute("SELECT id FROM drops WHERE id = ?", (drop_id,)).fetchone()
+    if not row:
+        conn.close()
+        return False
+    conn.execute("DELETE FROM drops WHERE id = ?", (drop_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_all_drops() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT d.*, GROUP_CONCAT(t.name) as topic_names
+        FROM drops d
+        LEFT JOIN drop_topics dt ON d.id = dt.drop_id
+        LEFT JOIN topics t ON dt.topic_id = t.id
+        GROUP BY d.id
+        ORDER BY d.dropped_at DESC
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def get_topics_with_summaries() -> list[dict]:
     conn = get_connection()
     rows = conn.execute(
