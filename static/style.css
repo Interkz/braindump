@@ -80,6 +80,30 @@ html, body {
   opacity: 1;
 }
 
+/* Keyboard shortcut hints */
+.shortcut-hints {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.shortcut-hint kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-faint);
+  border: 1px solid var(--text-faint);
+  border-radius: 3px;
+  margin-right: 3px;
+}
+
 /* The void below the input */
 .the-void {
   position: absolute;
