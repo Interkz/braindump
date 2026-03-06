@@ -4,7 +4,10 @@
 
 {% block content %}
 <div class="findings-container">
-    <div class="findings-header">findings from the well</div>
+    <div class="findings-header">
+        <span>findings from the well</span>
+        <a href="/api/export?format=markdown" class="export-btn" download>export</a>
+    </div>
 
     {% if topics %}
         {% for topic in topics %}

@@ -205,6 +205,27 @@ html, body {
   margin-bottom: 48px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--text-faint);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.export-btn {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--text-faint);
+  border-radius: 3px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.export-btn:hover {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
 }
 
 .topic-card {
