@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from . import database as db
+from . import processor
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent.parent / "static"
@@ -34,8 +35,9 @@ async def well(request: Request):
 
 
 @app.post("/api/drop")
-async def drop(payload: DropRequest):
+async def drop(payload: DropRequest, background_tasks: BackgroundTasks):
     drop = db.insert_drop(payload.content.strip())
+    background_tasks.add_task(processor.process_drops)
     return JSONResponse({"status": "ok", "drop": drop})
 
 
@@ -66,3 +68,9 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.post("/api/process")
+async def trigger_processing():
+    count = processor.process_drops()
+    return JSONResponse({"status": "ok", "processed": count})
