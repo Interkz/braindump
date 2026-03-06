@@ -50,6 +50,14 @@ async def get_drops(limit: int = 50, count_only: bool = False):
     return JSONResponse({"drops": drops})
 
 
+@app.get("/api/search")
+async def search_drops(q: str = ""):
+    if not q.strip():
+        return JSONResponse({"drops": []})
+    drops = db.search_drops(q.strip())
+    return JSONResponse({"drops": drops})
+
+
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()

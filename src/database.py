@@ -78,6 +78,16 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def search_drops(query: str) -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM drops WHERE content LIKE ? ORDER BY dropped_at DESC",
+        (f"%{query}%",),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def get_topics_with_summaries() -> list[dict]:
     conn = get_connection()
     rows = conn.execute("""

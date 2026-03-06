@@ -95,6 +95,75 @@ async function loadDropCount() {
   }
 }
 
+// === SEARCH ===
+const SEARCH_INPUT = document.querySelector('.search-input');
+const SEARCH_RESULTS = document.querySelector('.search-results');
+let cachedDrops = null;
+
+SEARCH_INPUT?.addEventListener('input', (e) => {
+  const query = e.target.value.trim();
+  if (!query) {
+    SEARCH_RESULTS.innerHTML = '';
+    return;
+  }
+  filterLocal(query);
+});
+
+SEARCH_INPUT?.addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const query = SEARCH_INPUT.value.trim();
+    if (!query) return;
+    await searchServer(query);
+  }
+});
+
+async function filterLocal(query) {
+  if (!cachedDrops) {
+    try {
+      const resp = await fetch('/api/drops?limit=200');
+      if (resp.ok) {
+        const data = await resp.json();
+        cachedDrops = data.drops || [];
+      }
+    } catch { return; }
+  }
+  const q = query.toLowerCase();
+  const matches = cachedDrops.filter(d => d.content.toLowerCase().includes(q));
+  renderResults(matches);
+}
+
+async function searchServer(query) {
+  try {
+    const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      renderResults(data.drops || []);
+    }
+  } catch (err) {
+    console.error('Search error:', err);
+  }
+}
+
+function renderResults(drops) {
+  if (!SEARCH_RESULTS) return;
+  if (drops.length === 0) {
+    SEARCH_RESULTS.innerHTML = '<div class="search-no-results">nothing found</div>';
+    return;
+  }
+  SEARCH_RESULTS.innerHTML = drops.map(d => {
+    const text = d.content.length > 120 ? d.content.substring(0, 117) + '...' : d.content;
+    const date = d.dropped_at ? new Date(d.dropped_at).toLocaleDateString() : '';
+    return `<div class="search-result-item">${escapeHtml(text)}<div class="result-meta">${d.content_type} · ${date}</div></div>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function updateCounter() {
   if (!COUNTER) return;
   if (dropCount === 0) {
