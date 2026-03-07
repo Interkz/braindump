@@ -50,6 +50,18 @@ async def get_drops(limit: int = 50, count_only: bool = False):
     return JSONResponse({"drops": drops})
 
 
+@app.get("/digest", response_class=HTMLResponse)
+async def digest_page(request: Request):
+    groups = db.get_drops_grouped_by_date()
+    return templates.TemplateResponse("digest.html", {"request": request, "groups": groups})
+
+
+@app.get("/api/digest")
+async def get_digest():
+    groups = db.get_drops_grouped_by_date()
+    return JSONResponse({"groups": groups})
+
+
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Digest — The Well{% endblock %}
+
+{% block content %}
+<div class="digest-container">
+    <div class="digest-header">daily digest</div>
+
+    {% if groups %}
+        {% for group in groups %}
+        <section class="date-section">
+            <div class="date-header">
+                <span class="date-label">{{ group.label }}</span>
+                <span class="date-count">{{ group.count }} drop{{ 's' if group.count != 1 else '' }}</span>
+            </div>
+            <div class="date-drops">
+                {% for drop in group.drops %}
+                <div class="digest-drop">
+                    <span class="drop-content">{{ drop.content }}</span>
+                    <span class="drop-type">{{ drop.content_type }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            No drops yet. Go drop something into the well.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
