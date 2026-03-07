@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "braindump.db"
@@ -106,3 +106,51 @@ def get_topic_with_drops(topic_id: int) -> dict | None:
     """, (topic_id,)).fetchall()
     conn.close()
     return {"topic": dict(topic), "drops": [dict(d) for d in drops]}
+
+
+def get_daily_streak() -> int:
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT DISTINCT date(dropped_at) as d FROM drops ORDER BY d DESC"
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        return 0
+
+    dates = [date.fromisoformat(r["d"]) for r in rows]
+    today = date.today()
+
+    # Streak must include today or yesterday to be active
+    if dates[0] != today and dates[0] != today - timedelta(days=1):
+        return 0
+
+    streak = 1
+    for i in range(1, len(dates)):
+        if dates[i - 1] - dates[i] == timedelta(days=1):
+            streak += 1
+        else:
+            break
+    return streak
+
+
+def get_streak_history(days: int = 30) -> list[dict]:
+    today = date.today()
+    start = today - timedelta(days=days - 1)
+
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT date(dropped_at) as d, COUNT(*) as count
+           FROM drops
+           WHERE date(dropped_at) >= ?
+           GROUP BY date(dropped_at)""",
+        (start.isoformat(),),
+    ).fetchall()
+    conn.close()
+
+    counts = {r["d"]: r["count"] for r in rows}
+    history = []
+    for i in range(days):
+        d = start + timedelta(days=i)
+        history.append({"date": d.isoformat(), "count": counts.get(d.isoformat(), 0)})
+    return history
