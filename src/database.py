@@ -91,6 +91,15 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def delete_topic(topic_id: int) -> bool:
+    conn = get_connection()
+    cursor = conn.execute("DELETE FROM topics WHERE id = ?", (topic_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    conn.close()
+    return deleted
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
