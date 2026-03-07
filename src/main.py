@@ -53,7 +53,8 @@ async def get_drops(limit: int = 50, count_only: bool = False):
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()
-    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics})
+    analytics = db.get_analytics()
+    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics, "analytics": analytics})
 
 
 @app.get("/api/findings")
@@ -68,6 +69,12 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.get("/api/analytics")
+async def get_analytics():
+    stats = db.get_analytics()
+    return JSONResponse(stats)
 
 
 @app.post("/api/process")

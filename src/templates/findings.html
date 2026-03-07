@@ -19,5 +19,53 @@
             Nothing organized yet. Drop some things into the well first.
         </div>
     {% endif %}
+
+    {% if analytics and analytics.total_drops > 0 %}
+    <div class="analytics-section">
+        <div class="analytics-header">well stats</div>
+        <div class="analytics-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ analytics.total_drops }}</div>
+                <div class="stat-label">total drops</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ analytics.total_topics }}</div>
+                <div class="stat-label">topics</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ analytics.avg_drops_per_day }}</div>
+                <div class="stat-label">avg / day</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ analytics.content_types.get('text', 0) }}</div>
+                <div class="stat-label">text</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ analytics.content_types.get('link', 0) }}</div>
+                <div class="stat-label">links</div>
+            </div>
+            {% if analytics.most_active_topic %}
+            <div class="stat-card stat-card-wide">
+                <div class="stat-value">{{ analytics.most_active_topic.name }}</div>
+                <div class="stat-label">most active topic ({{ analytics.most_active_topic.drop_count }} drops)</div>
+            </div>
+            {% endif %}
+        </div>
+        {% if analytics.drops_per_day %}
+        <div class="drops-chart">
+            <div class="chart-label">last 7 days</div>
+            <div class="chart-bars">
+                {% set max_count = analytics.drops_per_day | map(attribute='count') | list | max %}
+                {% for day in analytics.drops_per_day %}
+                <div class="chart-bar-group">
+                    <div class="chart-bar" style="height: {{ (day.count / max_count * 100) if max_count > 0 else 0 }}%"></div>
+                    <div class="chart-day">{{ day.date[-5:] }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
