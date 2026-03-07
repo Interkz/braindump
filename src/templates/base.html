@@ -10,10 +10,37 @@
 </head>
 <body>
     <nav class="nav">
-        <a href="/" class="nav-brand">the well</a>
+        <a href="/" class="nav-brand">the well<span class="drop-badge" id="drop-badge"></span></a>
         <a href="/findings" class="nav-link">findings</a>
     </nav>
     {% block content %}{% endblock %}
+    <script>
+    (function() {
+      const badge = document.getElementById('drop-badge');
+      window.dropBadgeCount = 0;
+
+      window.updateDropBadge = function(count) {
+        window.dropBadgeCount = count;
+        if (!badge) return;
+        if (count === 0) {
+          badge.textContent = '';
+          badge.classList.remove('visible');
+        } else {
+          badge.textContent = count;
+          badge.classList.add('visible');
+          badge.classList.remove('pulse');
+          void badge.offsetWidth;
+          badge.classList.add('pulse');
+        }
+        document.title = count > 0 ? '(' + count + ') Braindump' : 'Braindump';
+      };
+
+      fetch('/api/drops?count_only=true')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data) updateDropBadge(data.count || 0); })
+        .catch(() => {});
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
