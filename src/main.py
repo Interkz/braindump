@@ -29,6 +29,15 @@ class DropRequest(BaseModel):
     content: str
 
 
+class ImportDropItem(BaseModel):
+    content: str
+    content_type: str | None = None
+
+
+class ImportRequest(BaseModel):
+    drops: list[ImportDropItem]
+
+
 @app.get("/", response_class=HTMLResponse)
 async def well(request: Request):
     return templates.TemplateResponse("well.html", {"request": request})
@@ -68,6 +77,18 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.post("/api/import")
+async def bulk_import(payload: ImportRequest, background_tasks: BackgroundTasks):
+    drops = [d.model_dump() for d in payload.drops if d.content.strip()]
+    if not drops:
+        return JSONResponse({"error": "No valid drops provided"}, status_code=400)
+    for d in drops:
+        d["content"] = d["content"].strip()
+    count = db.insert_drops_bulk(drops)
+    background_tasks.add_task(processor.process_drops)
+    return JSONResponse({"status": "ok", "imported": count})
 
 
 @app.post("/api/process")

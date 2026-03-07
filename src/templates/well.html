@@ -14,6 +14,21 @@
     </div>
     <div class="the-void"></div>
     <div class="drop-counter"></div>
+    <button class="import-btn" title="Bulk import">import</button>
+</div>
+
+<!-- Import modal -->
+<div class="import-overlay" hidden>
+    <div class="import-modal">
+        <div class="import-header">
+            <span>bulk import</span>
+            <button class="import-close">&times;</button>
+        </div>
+        <p class="import-desc">Upload a <strong>.txt</strong> file (one drop per line) or a <strong>.json</strong> file (<code>{"drops":[{"content":"..."}]}</code>).</p>
+        <input type="file" class="import-file" accept=".txt,.json,.text">
+        <div class="import-status"></div>
+        <button class="import-submit" disabled>import</button>
+    </div>
 </div>
 {% endblock %}
 
