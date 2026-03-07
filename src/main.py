@@ -70,6 +70,13 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+@app.get("/api/streak")
+async def get_streak():
+    streak = db.get_daily_streak()
+    history = db.get_streak_history(30)
+    return JSONResponse({"streak": streak, "history": history})
+
+
 @app.post("/api/process")
 async def trigger_processing():
     count = processor.process_drops()
