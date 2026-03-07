@@ -3,14 +3,10 @@
 
 const VOID = document.querySelector('.the-void');
 const INPUT = document.querySelector('.drop-input');
-const COUNTER = document.querySelector('.drop-counter');
-
-let dropCount = 0;
 
 // Focus input on load
 window.addEventListener('load', () => {
   INPUT?.focus();
-  loadDropCount();
 });
 
 // Also focus on any click in the well area
@@ -62,9 +58,10 @@ function animateDrop(text) {
     item.remove();
   });
 
-  // Update counter
-  dropCount++;
-  updateCounter();
+  // Update badge count
+  if (window.updateDropBadge) {
+    updateDropBadge((window.dropBadgeCount || 0) + 1);
+  }
 }
 
 async function sendDrop(content) {
@@ -79,27 +76,5 @@ async function sendDrop(content) {
     }
   } catch (err) {
     console.error('Drop error:', err);
-  }
-}
-
-async function loadDropCount() {
-  try {
-    const resp = await fetch('/api/drops?count_only=true');
-    if (resp.ok) {
-      const data = await resp.json();
-      dropCount = data.count || 0;
-      updateCounter();
-    }
-  } catch (err) {
-    // Silent — counter is non-essential
-  }
-}
-
-function updateCounter() {
-  if (!COUNTER) return;
-  if (dropCount === 0) {
-    COUNTER.textContent = '';
-  } else {
-    COUNTER.textContent = `${dropCount} in the well`;
   }
 }
