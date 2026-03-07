@@ -49,12 +49,27 @@ INPUT?.addEventListener('paste', (e) => {
   }, 100);
 });
 
+function isUrl(text) {
+  return /^https?:\/\//i.test(text) || text.startsWith('www.');
+}
+
 function animateDrop(text) {
   if (!VOID) return;
 
   const item = document.createElement('div');
   item.className = 'falling-item';
-  item.textContent = text.length > 80 ? text.substring(0, 77) + '...' : text;
+
+  if (isUrl(text)) {
+    item.classList.add('falling-item--link');
+    const urlLine = document.createElement('div');
+    urlLine.className = 'falling-item__url';
+    urlLine.textContent = text.length > 80 ? text.substring(0, 77) + '...' : text;
+    item.appendChild(urlLine);
+    fetchPreview(text, item);
+  } else {
+    item.textContent = text.length > 80 ? text.substring(0, 77) + '...' : text;
+  }
+
   VOID.appendChild(item);
 
   // Remove after animation completes
@@ -65,6 +80,33 @@ function animateDrop(text) {
   // Update counter
   dropCount++;
   updateCounter();
+}
+
+async function fetchPreview(url, item) {
+  try {
+    const resp = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
+    if (!resp.ok || !item.isConnected) return;
+    const data = await resp.json();
+    if (!data.title && !data.domain) return;
+    if (!item.isConnected) return;
+
+    const preview = document.createElement('div');
+    preview.className = 'link-preview';
+    if (data.title) {
+      const title = document.createElement('div');
+      title.className = 'link-preview__title';
+      title.textContent = data.title;
+      preview.appendChild(title);
+    }
+    const domain = document.createElement('div');
+    domain.className = 'link-preview__domain';
+    domain.textContent = data.domain;
+    preview.appendChild(domain);
+
+    item.appendChild(preview);
+  } catch {
+    // Silent — preview is non-essential
+  }
 }
 
 async function sendDrop(content) {
