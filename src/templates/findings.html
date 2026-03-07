@@ -6,6 +6,43 @@
 <div class="findings-container">
     <div class="findings-header">findings from the well</div>
 
+    {% if all_tags %}
+    <div class="tags-section">
+        <div class="tags-label">tags</div>
+        <div class="tags-list">
+            {% for tag in all_tags %}
+            <a href="/findings?tag={{ tag.name }}"
+               class="tag-pill{% if active_tag == tag.name %} tag-pill--active{% endif %}">
+                #{{ tag.name }}
+                <span class="tag-count">{{ tag.drop_count }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if active_tag %}
+    <div class="filtered-drops">
+        <div class="filtered-header">
+            drops tagged <span class="filtered-tag">#{{ active_tag }}</span>
+            <a href="/findings" class="clear-filter">clear</a>
+        </div>
+        {% for drop in drops %}
+        <div class="drop-card">
+            <div class="drop-content">{{ drop.content }}</div>
+            <div class="drop-meta">
+                <span class="drop-time">{{ drop.dropped_at }}</span>
+                {% for tag in drop.tags %}
+                <a href="/findings?tag={{ tag }}" class="tag-pill tag-pill--small">#{{ tag }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">No drops with this tag yet.</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if topics %}
         {% for topic in topics %}
         <div class="topic-card">
@@ -14,7 +51,7 @@
             <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
         </div>
         {% endfor %}
-    {% else %}
+    {% elif not active_tag %}
         <div class="empty-state">
             Nothing organized yet. Drop some things into the well first.
         </div>
