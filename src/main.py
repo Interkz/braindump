@@ -51,9 +51,10 @@ async def get_drops(limit: int = 50, count_only: bool = False):
 
 
 @app.get("/findings", response_class=HTMLResponse)
-async def findings_page(request: Request):
-    topics = db.get_topics_with_summaries()
-    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics})
+async def findings_page(request: Request, q: str | None = None):
+    query = q.strip() if q else None
+    topics = db.get_topics_with_summaries(query=query)
+    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics, "q": query})
 
 
 @app.get("/api/findings")

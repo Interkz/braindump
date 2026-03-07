@@ -78,15 +78,26 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def get_topics_with_summaries() -> list[dict]:
+def get_topics_with_summaries(query: str | None = None) -> list[dict]:
     conn = get_connection()
-    rows = conn.execute("""
-        SELECT t.*, COUNT(dt.drop_id) as drop_count
-        FROM topics t
-        LEFT JOIN drop_topics dt ON t.id = dt.topic_id
-        GROUP BY t.id
-        ORDER BY t.updated_at DESC
-    """).fetchall()
+    if query:
+        like = f"%{query}%"
+        rows = conn.execute("""
+            SELECT t.*, COUNT(dt.drop_id) as drop_count
+            FROM topics t
+            LEFT JOIN drop_topics dt ON t.id = dt.topic_id
+            WHERE t.name LIKE ? OR t.summary LIKE ?
+            GROUP BY t.id
+            ORDER BY t.updated_at DESC
+        """, (like, like)).fetchall()
+    else:
+        rows = conn.execute("""
+            SELECT t.*, COUNT(dt.drop_id) as drop_count
+            FROM topics t
+            LEFT JOIN drop_topics dt ON t.id = dt.topic_id
+            GROUP BY t.id
+            ORDER BY t.updated_at DESC
+        """).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
