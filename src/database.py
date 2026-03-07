@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "braindump.db"
@@ -62,18 +62,45 @@ def insert_drop(content: str) -> dict:
     return dict(row)
 
 
-def count_drops() -> int:
+def _time_range_cutoff(time_range: str | None) -> str | None:
+    """Return an ISO datetime string for the start of the given time range."""
+    if not time_range or time_range == "all":
+        return None
+    now = datetime.utcnow()
+    cutoffs = {
+        "today": now.replace(hour=0, minute=0, second=0, microsecond=0),
+        "week": now - timedelta(days=7),
+        "month": now - timedelta(days=30),
+    }
+    cutoff = cutoffs.get(time_range)
+    return cutoff.strftime("%Y-%m-%d %H:%M:%S") if cutoff else None
+
+
+def count_drops(time_range: str | None = None) -> int:
     conn = get_connection()
-    row = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()
+    cutoff = _time_range_cutoff(time_range)
+    if cutoff:
+        row = conn.execute(
+            "SELECT COUNT(*) as cnt FROM drops WHERE dropped_at >= ?", (cutoff,)
+        ).fetchone()
+    else:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()
     conn.close()
     return row["cnt"]
 
 
-def get_recent_drops(limit: int = 50) -> list[dict]:
+def get_recent_drops(limit: int = 50, time_range: str | None = None) -> list[dict]:
     conn = get_connection()
-    rows = conn.execute(
-        "SELECT * FROM drops ORDER BY dropped_at DESC LIMIT ?", (limit,)
-    ).fetchall()
+    cutoff = _time_range_cutoff(time_range)
+    if cutoff:
+        rows = conn.execute(
+            "SELECT * FROM drops WHERE dropped_at >= ? ORDER BY dropped_at DESC LIMIT ?",
+            (cutoff, limit),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT * FROM drops ORDER BY dropped_at DESC LIMIT ?", (limit,)
+        ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
