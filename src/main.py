@@ -50,6 +50,12 @@ async def get_drops(limit: int = 50, count_only: bool = False):
     return JSONResponse({"drops": drops})
 
 
+@app.get("/api/topics/recent")
+async def recent_topics(limit: int = 5):
+    topics = db.get_recent_topics(limit)
+    return JSONResponse({"topics": topics})
+
+
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()

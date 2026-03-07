@@ -78,6 +78,20 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_recent_topics(limit: int = 5) -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT t.id, t.name, COUNT(dt.drop_id) as drop_count
+        FROM topics t
+        LEFT JOIN drop_topics dt ON t.id = dt.topic_id
+        GROUP BY t.id
+        ORDER BY t.updated_at DESC
+        LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def get_topics_with_summaries() -> list[dict]:
     conn = get_connection()
     rows = conn.execute("""

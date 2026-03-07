@@ -254,7 +254,82 @@ html, body {
   opacity: 0.5;
 }
 
+/* === RECENT TOPICS SIDEBAR === */
+.recent-topics {
+  position: absolute;
+  top: 25vh;
+  right: 24px;
+  width: 180px;
+  z-index: 10;
+}
+
+.recent-topics:empty {
+  display: none;
+}
+
+.recent-topics-title {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+.recent-topic-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--text-faint);
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.recent-topic-item:first-of-type {
+  border-top: 1px solid var(--text-faint);
+}
+
+.recent-topic-item:hover {
+  border-color: var(--text-dim);
+}
+
+.recent-topic-item:hover .recent-topic-name {
+  color: var(--text);
+}
+
+.recent-topic-name {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  transition: color 0.2s;
+}
+
+.recent-topic-count {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
 /* === RESPONSIVE === */
+@media (max-width: 1024px) {
+  .recent-topics {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    max-width: 600px;
+    padding: 0 24px;
+    margin-top: 32px;
+  }
+}
+
 @media (max-width: 640px) {
   .well-container {
     padding-top: 20vh;

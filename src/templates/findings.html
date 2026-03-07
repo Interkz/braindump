@@ -8,7 +8,7 @@
 
     {% if topics %}
         {% for topic in topics %}
-        <div class="topic-card">
+        <div class="topic-card" id="topic-{{ topic.id }}">
             <div class="topic-name">{{ topic.name }}</div>
             <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
             <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
