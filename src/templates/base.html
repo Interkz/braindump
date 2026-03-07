@@ -14,6 +14,81 @@
         <a href="/findings" class="nav-link">findings</a>
     </nav>
     {% block content %}{% endblock %}
+
+    <!-- Quick Capture Overlay (Ctrl+Shift+D) -->
+    <div class="quick-capture-overlay" id="quickCapture">
+        <div class="quick-capture-box">
+            <input type="text" class="quick-capture-input" id="quickCaptureInput"
+                   placeholder="quick drop..." autocomplete="off">
+            <div class="quick-capture-hint">enter to drop &middot; esc to close</div>
+        </div>
+    </div>
+    <div class="quick-capture-flash" id="quickCaptureFlash">dropped</div>
+
+    <script>
+    (function() {
+        const overlay = document.getElementById('quickCapture');
+        const input = document.getElementById('quickCaptureInput');
+        const flash = document.getElementById('quickCaptureFlash');
+
+        function open() {
+            overlay.classList.add('active');
+            input.value = '';
+            input.focus();
+        }
+
+        function close() {
+            overlay.classList.remove('active');
+        }
+
+        function showFlash() {
+            flash.classList.add('visible');
+            setTimeout(() => flash.classList.remove('visible'), 1200);
+        }
+
+        // Global shortcut: Ctrl+Shift+D
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                e.preventDefault();
+                if (overlay.classList.contains('active')) {
+                    close();
+                } else {
+                    open();
+                }
+            }
+        });
+
+        // Close on Escape
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Escape') {
+                close();
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const content = input.value.trim();
+                if (!content) return;
+                close();
+                try {
+                    const resp = await fetch('/api/drop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content }),
+                    });
+                    if (resp.ok) showFlash();
+                } catch (err) {
+                    console.error('Quick capture error:', err);
+                }
+            }
+        });
+
+        // Close on clicking backdrop
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+    })();
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
