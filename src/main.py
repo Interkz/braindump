@@ -29,6 +29,10 @@ class DropRequest(BaseModel):
     content: str
 
 
+class RenameTopicRequest(BaseModel):
+    name: str
+
+
 @app.get("/", response_class=HTMLResponse)
 async def well(request: Request):
     return templates.TemplateResponse("well.html", {"request": request})
@@ -68,6 +72,17 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.put("/api/findings/{topic_id}")
+async def rename_topic(topic_id: int, payload: RenameTopicRequest):
+    new_name = payload.name.strip()
+    if not new_name:
+        return JSONResponse({"error": "Name cannot be empty"}, status_code=400)
+    topic = db.rename_topic(topic_id, new_name)
+    if not topic:
+        return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse({"status": "ok", "topic": topic})
 
 
 @app.post("/api/process")
