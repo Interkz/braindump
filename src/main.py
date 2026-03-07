@@ -1,6 +1,9 @@
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
+import httpx
 from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,6 +12,8 @@ from pydantic import BaseModel
 
 from . import database as db
 from . import processor
+
+_preview_cache: dict[str, dict] = {}
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent.parent / "static"
@@ -74,3 +79,47 @@ async def get_finding(topic_id: int):
 async def trigger_processing():
     count = processor.process_drops()
     return JSONResponse({"status": "ok", "processed": count})
+
+
+def _extract_title(html: str) -> str | None:
+    match = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
+    if match:
+        title = match.group(1).strip()
+        title = re.sub(r"\s+", " ", title)
+        return title
+    return None
+
+
+@app.get("/api/preview")
+async def link_preview(url: str):
+    if url in _preview_cache:
+        return JSONResponse(_preview_cache[url])
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return JSONResponse({"error": "Invalid URL"}, status_code=400)
+
+    domain = parsed.hostname.removeprefix("www.")
+    result = {"url": url, "domain": domain, "title": None}
+
+    try:
+        async with httpx.AsyncClient(
+            follow_redirects=True, timeout=5.0
+        ) as client:
+            head = await client.head(url)
+            content_type = head.headers.get("content-type", "")
+            if "html" not in content_type and "text" not in content_type:
+                _preview_cache[url] = result
+                return JSONResponse(result)
+
+            resp = await client.get(
+                url, headers={"Range": "bytes=0-10239"}
+            )
+            title = _extract_title(resp.text)
+            if title:
+                result["title"] = title
+    except (httpx.HTTPError, ValueError):
+        pass
+
+    _preview_cache[url] = result
+    return JSONResponse(result)
