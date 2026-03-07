@@ -239,7 +239,72 @@ html, body {
   padding: 120px 24px;
   color: var(--text-faint);
   font-family: var(--font);
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.empty-state-text {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.empty-state-subtext {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* Well empty state */
+.well-empty-state {
+  position: absolute;
+  top: 80px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--text-faint);
+  font-family: var(--font);
+  pointer-events: none;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.well-empty-state .empty-state-text {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.well-empty-state .empty-state-subtext {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* Search input */
+.findings-search {
+  margin-bottom: 36px;
+}
+
+.search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--text-faint);
+  color: var(--text);
+  font-family: var(--font);
   font-size: 14px;
+  padding: 12px 0;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: var(--text-dim);
+}
+
+.search-input::placeholder {
+  color: var(--text-faint);
+  font-style: italic;
 }
 
 /* === DROP COUNT (subtle) === */

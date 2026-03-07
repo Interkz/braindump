@@ -4,6 +4,7 @@
 const VOID = document.querySelector('.the-void');
 const INPUT = document.querySelector('.drop-input');
 const COUNTER = document.querySelector('.drop-counter');
+const EMPTY = document.getElementById('wellEmpty');
 
 let dropCount = 0;
 
@@ -102,4 +103,10 @@ function updateCounter() {
   } else {
     COUNTER.textContent = `${dropCount} in the well`;
   }
+  updateEmptyState();
+}
+
+function updateEmptyState() {
+  if (!EMPTY) return;
+  EMPTY.style.display = dropCount === 0 ? '' : 'none';
 }
