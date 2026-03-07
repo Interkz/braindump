@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Reading List — The Well{% endblock %}
+
+{% block content %}
+<div class="findings-container">
+    <div class="findings-header">reading list</div>
+
+    {% if links %}
+        {% for link in links %}
+        <div class="reading-item">
+            <a href="{{ link.content }}" class="reading-link" target="_blank" rel="noopener">{{ link.content }}</a>
+            <div class="reading-meta">
+                <span class="reading-date">{{ link.dropped_at }}</span>
+                {% for topic in link.topics %}
+                    <span class="reading-tag">{{ topic }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            No links yet. Drop some URLs into the well.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
