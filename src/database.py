@@ -91,6 +91,65 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_analytics() -> dict:
+    conn = get_connection()
+
+    total_drops = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()["cnt"]
+    total_topics = conn.execute("SELECT COUNT(*) as cnt FROM topics").fetchone()["cnt"]
+
+    # Drops per day for last 7 days
+    rows = conn.execute("""
+        SELECT date(dropped_at) as day, COUNT(*) as cnt
+        FROM drops
+        WHERE dropped_at >= date('now', '-6 days')
+        GROUP BY date(dropped_at)
+        ORDER BY day ASC
+    """).fetchall()
+    drops_per_day = [{"date": r["day"], "count": r["cnt"]} for r in rows]
+
+    # Most active topic (most linked drops)
+    most_active = conn.execute("""
+        SELECT t.name, COUNT(dt.drop_id) as drop_count
+        FROM topics t
+        JOIN drop_topics dt ON t.id = dt.topic_id
+        GROUP BY t.id
+        ORDER BY drop_count DESC
+        LIMIT 1
+    """).fetchone()
+    most_active_topic = (
+        {"name": most_active["name"], "drop_count": most_active["drop_count"]}
+        if most_active else None
+    )
+
+    # Content type breakdown
+    type_rows = conn.execute("""
+        SELECT content_type, COUNT(*) as cnt
+        FROM drops
+        GROUP BY content_type
+    """).fetchall()
+    content_types = {r["content_type"]: r["cnt"] for r in type_rows}
+
+    # Average drops per day (across all days that have drops)
+    avg_row = conn.execute("""
+        SELECT AVG(daily_count) as avg_drops FROM (
+            SELECT COUNT(*) as daily_count
+            FROM drops
+            GROUP BY date(dropped_at)
+        )
+    """).fetchone()
+    avg_drops_per_day = round(avg_row["avg_drops"], 1) if avg_row["avg_drops"] else 0
+
+    conn.close()
+    return {
+        "total_drops": total_drops,
+        "total_topics": total_topics,
+        "drops_per_day": drops_per_day,
+        "most_active_topic": most_active_topic,
+        "content_types": content_types,
+        "avg_drops_per_day": avg_drops_per_day,
+    }
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
