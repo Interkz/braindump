@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "braindump.db"
@@ -89,6 +89,41 @@ def get_topics_with_summaries() -> list[dict]:
     """).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def get_drops_grouped_by_date() -> list[dict]:
+    """Return drops organized into date groups: today, yesterday, this week, older."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM drops ORDER BY dropped_at DESC"
+    ).fetchall()
+    conn.close()
+
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    week_start = today - timedelta(days=today.weekday())  # Monday
+
+    groups: dict[str, dict] = {}
+    for row in rows:
+        d = dict(row)
+        dropped = datetime.fromisoformat(d["dropped_at"]).date()
+
+        if dropped == today:
+            key, label = "today", "Today"
+        elif dropped == yesterday:
+            key, label = "yesterday", "Yesterday"
+        elif dropped >= week_start:
+            key, label = "this_week", "This week"
+        else:
+            key, label = "older", "Older"
+
+        if key not in groups:
+            groups[key] = {"key": key, "label": label, "count": 0, "drops": []}
+        groups[key]["count"] += 1
+        groups[key]["drops"].append(d)
+
+    order = ["today", "yesterday", "this_week", "older"]
+    return [groups[k] for k in order if k in groups]
 
 
 def get_topic_with_drops(topic_id: int) -> dict | None:
