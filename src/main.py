@@ -70,6 +70,18 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+@app.get("/reading-list", response_class=HTMLResponse)
+async def reading_list_page(request: Request):
+    links = db.get_link_drops()
+    return templates.TemplateResponse("reading-list.html", {"request": request, "links": links})
+
+
+@app.get("/api/reading-list")
+async def get_reading_list():
+    links = db.get_link_drops()
+    return JSONResponse({"links": links})
+
+
 @app.post("/api/process")
 async def trigger_processing():
     count = processor.process_drops()

@@ -183,6 +183,11 @@ html, body {
   letter-spacing: 0.05em;
 }
 
+.nav-links {
+  display: flex;
+  gap: 12px;
+}
+
 .nav-link:hover {
   color: var(--text-dim);
   border-color: var(--text-dim);
@@ -232,6 +237,55 @@ html, body {
   font-size: 11px;
   color: var(--text-faint);
   margin-top: 8px;
+}
+
+/* === READING LIST === */
+.reading-item {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.reading-item:last-child {
+  border-bottom: none;
+}
+
+.reading-link {
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.reading-link:hover {
+  text-decoration: underline;
+}
+
+.reading-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reading-date {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.reading-tag {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--accent-dim);
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .empty-state {

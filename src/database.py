@@ -91,6 +91,28 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_link_drops() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT d.*,
+               GROUP_CONCAT(t.name) as topic_names
+        FROM drops d
+        LEFT JOIN drop_topics dt ON d.id = dt.drop_id
+        LEFT JOIN topics t ON dt.topic_id = t.id
+        WHERE d.content_type = 'link'
+        GROUP BY d.id
+        ORDER BY d.dropped_at DESC
+    """).fetchall()
+    conn.close()
+    results = []
+    for r in rows:
+        d = dict(r)
+        d["topics"] = d["topic_names"].split(",") if d["topic_names"] else []
+        del d["topic_names"]
+        results.append(d)
+    return results
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
