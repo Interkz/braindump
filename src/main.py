@@ -53,7 +53,8 @@ async def get_drops(limit: int = 50, count_only: bool = False):
 @app.get("/findings", response_class=HTMLResponse)
 async def findings_page(request: Request):
     topics = db.get_topics_with_summaries()
-    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics})
+    archived = db.get_archived_topics()
+    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics, "archived": archived})
 
 
 @app.get("/api/findings")
@@ -68,6 +69,22 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.post("/api/findings/{topic_id}/archive")
+async def archive_topic(topic_id: int):
+    result = db.archive_topic(topic_id, archive=True)
+    if not result:
+        return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse({"status": "ok", "topic": result})
+
+
+@app.post("/api/findings/{topic_id}/unarchive")
+async def unarchive_topic(topic_id: int):
+    result = db.archive_topic(topic_id, archive=False)
+    if not result:
+        return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse({"status": "ok", "topic": result})
 
 
 @app.post("/api/process")
