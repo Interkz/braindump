@@ -9,7 +9,10 @@
     {% if topics %}
         {% for topic in topics %}
         <div class="topic-card">
-            <div class="topic-name">{{ topic.name }}</div>
+            <div class="topic-name" data-topic-id="{{ topic.id }}">
+                <span class="topic-name-text">{{ topic.name }}</span>
+                <span class="topic-edit-icon" title="Rename topic">&#9998;</span>
+            </div>
             <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
             <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
         </div>
@@ -20,4 +23,57 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.topic-name').forEach(el => {
+    const textEl = el.querySelector('.topic-name-text');
+    const topicId = el.dataset.topicId;
+
+    el.addEventListener('click', () => {
+        if (el.querySelector('.topic-name-input')) return;
+
+        const currentName = textEl.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'topic-name-input';
+        input.value = currentName;
+
+        textEl.style.display = 'none';
+        el.querySelector('.topic-edit-icon').style.display = 'none';
+        el.appendChild(input);
+        input.focus();
+        input.select();
+
+        function save() {
+            const newName = input.value.trim();
+            if (newName && newName !== currentName) {
+                fetch(`/api/findings/${topicId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                }).then(res => {
+                    if (res.ok) {
+                        textEl.textContent = newName;
+                    }
+                });
+            }
+            cancel();
+        }
+
+        function cancel() {
+            input.remove();
+            textEl.style.display = '';
+            el.querySelector('.topic-edit-icon').style.display = '';
+        }
+
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); save(); }
+            if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+        });
+        input.addEventListener('blur', save);
+    });
+});
+</script>
 {% endblock %}

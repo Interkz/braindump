@@ -218,6 +218,35 @@ html, body {
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topic-edit-icon {
+  font-size: 13px;
+  color: var(--text-faint);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.topic-name:hover .topic-edit-icon {
+  opacity: 1;
+}
+
+.topic-name-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--text-dim);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  outline: none;
+  width: 100%;
+  padding: 0 0 2px;
 }
 
 .topic-summary {

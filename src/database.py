@@ -91,6 +91,22 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def rename_topic(topic_id: int, new_name: str) -> dict | None:
+    conn = get_connection()
+    topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
+    if not topic:
+        conn.close()
+        return None
+    conn.execute(
+        "UPDATE topics SET name = ?, updated_at = ? WHERE id = ?",
+        (new_name, datetime.now().isoformat(), topic_id),
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
+    conn.close()
+    return dict(row)
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
