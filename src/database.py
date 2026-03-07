@@ -37,6 +37,11 @@ def init_db():
             relevance REAL NOT NULL DEFAULT 1.0,
             PRIMARY KEY (drop_id, topic_id)
         );
+
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
     """)
     conn.close()
 
@@ -106,3 +111,27 @@ def get_topic_with_drops(topic_id: int) -> dict | None:
     """, (topic_id,)).fetchall()
     conn.close()
     return {"topic": dict(topic), "drops": [dict(d) for d in drops]}
+
+
+def get_setting(key: str, default: str = "") -> str:
+    conn = get_connection()
+    row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    conn.close()
+    return row["value"] if row else default
+
+
+def set_setting(key: str, value: str):
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        (key, value),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_all_settings() -> dict:
+    conn = get_connection()
+    rows = conn.execute("SELECT key, value FROM settings").fetchall()
+    conn.close()
+    return {r["key"]: r["value"] for r in rows}
