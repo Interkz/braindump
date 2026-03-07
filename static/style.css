@@ -254,6 +254,102 @@ html, body {
   opacity: 0.5;
 }
 
+/* === CONFIRM DIALOG === */
+.confirm-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-backdrop.open {
+  display: flex;
+}
+
+.confirm-card {
+  background: #1e1e1e;
+  border: 1px solid var(--text-faint);
+  border-radius: 8px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirm-message {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 10px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: opacity 0.2s;
+}
+
+.confirm-btn:hover {
+  opacity: 0.85;
+}
+
+.confirm-btn--cancel {
+  background: transparent;
+  border: 1px solid var(--text-faint);
+  color: var(--text-dim);
+}
+
+.confirm-btn--confirm {
+  background: #c0392b;
+  color: #fff;
+}
+
+/* === TOPIC DELETE === */
+.topic-card {
+  position: relative;
+}
+
+.topic-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-family: var(--font);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.topic-card:hover .topic-delete {
+  opacity: 1;
+}
+
+.topic-delete:hover {
+  color: #c0392b;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 640px) {
   .well-container {

@@ -70,6 +70,14 @@ async def get_finding(topic_id: int):
     return JSONResponse(result)
 
 
+@app.delete("/api/findings/{topic_id}")
+async def delete_finding(topic_id: int):
+    deleted = db.delete_topic(topic_id)
+    if not deleted:
+        return JSONResponse({"error": "Topic not found"}, status_code=404)
+    return JSONResponse({"status": "ok"})
+
+
 @app.post("/api/process")
 async def trigger_processing():
     count = processor.process_drops()

@@ -9,6 +9,7 @@
     {% if topics %}
         {% for topic in topics %}
         <div class="topic-card">
+            <button class="topic-delete" data-topic-id="{{ topic.id }}" data-topic-name="{{ topic.name }}">delete</button>
             <div class="topic-name">{{ topic.name }}</div>
             <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
             <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
@@ -20,4 +21,24 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.topic-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const topicId = btn.dataset.topicId;
+        const topicName = btn.dataset.topicName;
+        confirmDialog.show({
+            message: `Delete topic "${topicName}" and unlink its drops?`,
+            onConfirm: async () => {
+                const resp = await fetch(`/api/findings/${topicId}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    btn.closest('.topic-card').remove();
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
