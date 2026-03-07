@@ -254,6 +254,80 @@ html, body {
   opacity: 0.5;
 }
 
+/* === QUICK CAPTURE OVERLAY === */
+.quick-capture-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.quick-capture-overlay.active {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 20vh;
+}
+
+.quick-capture-box {
+  width: 100%;
+  max-width: 500px;
+  padding: 0 24px;
+}
+
+.quick-capture-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--text-faint);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.quick-capture-input:focus {
+  border-color: var(--accent);
+}
+
+.quick-capture-input::placeholder {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.quick-capture-hint {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 8px;
+  text-align: center;
+}
+
+.quick-capture-flash {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 8px 20px;
+  border-radius: 4px;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.quick-capture-flash.visible {
+  opacity: 1;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 640px) {
   .well-container {
