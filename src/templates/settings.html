@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — The Well{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-header">settings</div>
+
+    <form class="settings-form" id="settings-form">
+        <div class="settings-section">
+            <label class="settings-label">anthropic api key</label>
+            <div class="settings-key-row">
+                <input
+                    type="password"
+                    class="settings-input"
+                    id="api-key"
+                    placeholder="{{ masked_key or 'sk-ant-...' }}"
+                    autocomplete="off"
+                >
+                {% if masked_key %}
+                <span class="settings-key-hint">current: {{ masked_key }}</span>
+                {% endif %}
+            </div>
+            <div class="settings-hint">stored locally in the database. leave blank to keep current key.</div>
+        </div>
+
+        <div class="settings-section">
+            <label class="settings-label">processing mode</label>
+            <div class="settings-mode-group">
+                <label class="settings-radio">
+                    <input type="radio" name="mode" value="auto" {{ 'checked' if processing_mode == 'auto' }}>
+                    <span class="radio-label">auto</span>
+                    <span class="radio-desc">use llm if key is set, otherwise keywords</span>
+                </label>
+                <label class="settings-radio">
+                    <input type="radio" name="mode" value="llm" {{ 'checked' if processing_mode == 'llm' }}>
+                    <span class="radio-label">llm</span>
+                    <span class="radio-desc">always use claude api (requires key)</span>
+                </label>
+                <label class="settings-radio">
+                    <input type="radio" name="mode" value="keyword" {{ 'checked' if processing_mode == 'keyword' }}>
+                    <span class="radio-label">keyword</span>
+                    <span class="radio-desc">keyword extraction only, no api calls</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-actions">
+            <button type="submit" class="settings-btn settings-btn-primary">save</button>
+            <button type="button" class="settings-btn" id="test-btn">test processing</button>
+        </div>
+    </form>
+
+    <div class="settings-status" id="status"></div>
+
+    <div class="settings-section settings-info">
+        <div class="settings-label">current status</div>
+        <div class="settings-status-line">
+            api key: <span class="{{ 'text-ok' if has_key else 'text-warn' }}">{{ 'configured' if has_key else 'not set' }}</span>
+        </div>
+        <div class="settings-status-line">
+            mode: <span>{{ processing_mode }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const form = document.getElementById('settings-form');
+const status = document.getElementById('status');
+const testBtn = document.getElementById('test-btn');
+
+function showStatus(msg, ok) {
+    status.textContent = msg;
+    status.className = 'settings-status ' + (ok ? 'status-ok' : 'status-err');
+    setTimeout(() => { status.textContent = ''; status.className = 'settings-status'; }, 4000);
+}
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const key = document.getElementById('api-key').value;
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const body = { processing_mode: mode };
+    if (key) body.anthropic_api_key = key;
+    try {
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            showStatus('settings saved', true);
+            if (key) document.getElementById('api-key').value = '';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showStatus(data.error || 'failed to save', false);
+        }
+    } catch (err) {
+        showStatus('network error', false);
+    }
+});
+
+testBtn.addEventListener('click', async () => {
+    testBtn.disabled = true;
+    testBtn.textContent = 'processing...';
+    try {
+        const res = await fetch('/api/settings/test', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'no_drops') {
+            showStatus('no unprocessed drops to test with', false);
+        } else {
+            showStatus(`processed ${data.processed} drop(s) using ${data.mode_used} mode`, true);
+        }
+    } catch (err) {
+        showStatus('test failed: ' + err.message, false);
+    } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = 'test processing';
+    }
+});
+</script>
+{% endblock %}

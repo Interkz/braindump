@@ -18,7 +18,10 @@ from . import database as db
 
 log = logging.getLogger(__name__)
 
-ANTHROPIC_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+def get_api_key() -> str:
+    """Get API key from settings table, falling back to env var."""
+    key = db.get_setting("anthropic_api_key")
+    return key or os.getenv("ANTHROPIC_API_KEY", "")
 
 # Common English stopwords for keyword extraction
 STOPWORDS = {
@@ -183,7 +186,7 @@ def process_with_llm():
     """Claude API categorization (requires ANTHROPIC_API_KEY)."""
     import anthropic
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=get_api_key())
     conn = db.get_connection()
 
     # Get unprocessed drops
@@ -317,8 +320,21 @@ Rules:
     return processed_count
 
 
+def get_processing_mode() -> str:
+    """Get processing mode: 'auto', 'keyword', or 'llm'."""
+    return db.get_setting("processing_mode", "auto")
+
+
 def process_drops() -> int:
-    """Process unprocessed drops. Uses LLM if key available, else keywords."""
-    if ANTHROPIC_KEY:
+    """Process unprocessed drops. Respects processing_mode setting."""
+    mode = get_processing_mode()
+    api_key = get_api_key()
+
+    if mode == "keyword":
+        return process_with_keywords()
+    if mode == "llm" and api_key:
+        return process_with_llm()
+    # auto: use LLM if key available, else keywords
+    if api_key:
         return process_with_llm()
     return process_with_keywords()
