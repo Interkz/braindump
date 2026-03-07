@@ -11,7 +11,12 @@
         <div class="topic-card">
             <div class="topic-name">{{ topic.name }}</div>
             <div class="topic-summary">{{ topic.summary or 'Processing...' }}</div>
-            <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
+            <div class="topic-meta">
+                <div class="topic-count">{{ topic.drop_count or 0 }} drops</div>
+                {% if topic.updated_at %}
+                <div class="topic-time" data-timestamp="{{ topic.updated_at }}"></div>
+                {% endif %}
+            </div>
         </div>
         {% endfor %}
     {% else %}
@@ -20,4 +25,8 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/relative-time.js"></script>
 {% endblock %}
