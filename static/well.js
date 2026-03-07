@@ -74,11 +74,13 @@ async function sendDrop(content) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
     });
-    if (!resp.ok) {
-      console.error('Drop failed:', resp.status);
+    if (resp.ok) {
+      showToast('Dropped into the well', 'success');
+    } else {
+      showToast('Failed to drop — try again', 'error');
     }
   } catch (err) {
-    console.error('Drop error:', err);
+    showToast('Connection lost — drop not saved', 'error');
   }
 }
 
