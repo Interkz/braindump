@@ -227,11 +227,26 @@ html, body {
   color: var(--text-dim);
 }
 
-.topic-count {
+.topic-meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.topic-count,
+.topic-time {
   font-family: var(--font);
   font-size: 11px;
   color: var(--text-faint);
-  margin-top: 8px;
+}
+
+.topic-time {
+  cursor: default;
+}
+
+[data-timestamp] {
+  cursor: default;
 }
 
 .empty-state {

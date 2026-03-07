@@ -6,11 +6,14 @@ const INPUT = document.querySelector('.drop-input');
 const COUNTER = document.querySelector('.drop-counter');
 
 let dropCount = 0;
+let lastDropTime = null;
 
 // Focus input on load
 window.addEventListener('load', () => {
   INPUT?.focus();
   loadDropCount();
+  // Refresh relative time in counter every 30s
+  setInterval(updateCounter, 30000);
 });
 
 // Also focus on any click in the well area
@@ -74,7 +77,13 @@ async function sendDrop(content) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
     });
-    if (!resp.ok) {
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.drop && data.drop.dropped_at) {
+        lastDropTime = data.drop.dropped_at;
+        updateCounter();
+      }
+    } else {
       console.error('Drop failed:', resp.status);
     }
   } catch (err) {
@@ -84,12 +93,21 @@ async function sendDrop(content) {
 
 async function loadDropCount() {
   try {
-    const resp = await fetch('/api/drops?count_only=true');
-    if (resp.ok) {
-      const data = await resp.json();
+    const [countResp, dropsResp] = await Promise.all([
+      fetch('/api/drops?count_only=true'),
+      fetch('/api/drops?limit=1'),
+    ]);
+    if (countResp.ok) {
+      const data = await countResp.json();
       dropCount = data.count || 0;
-      updateCounter();
     }
+    if (dropsResp.ok) {
+      const data = await dropsResp.json();
+      if (data.drops && data.drops.length > 0) {
+        lastDropTime = data.drops[0].dropped_at;
+      }
+    }
+    updateCounter();
   } catch (err) {
     // Silent — counter is non-essential
   }
@@ -99,7 +117,13 @@ function updateCounter() {
   if (!COUNTER) return;
   if (dropCount === 0) {
     COUNTER.textContent = '';
-  } else {
-    COUNTER.textContent = `${dropCount} in the well`;
+    COUNTER.removeAttribute('title');
+    return;
   }
+  let text = `${dropCount} in the well`;
+  if (lastDropTime) {
+    text += ` \u00b7 last drop ${formatRelativeTime(lastDropTime)}`;
+    COUNTER.title = formatExactTime(lastDropTime);
+  }
+  COUNTER.textContent = text;
 }
