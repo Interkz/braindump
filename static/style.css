@@ -14,9 +14,27 @@
   --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
 }
 
+/* Paper theme */
+body[data-theme="paper"] {
+  --void: #f5f0eb;
+  --void-deep: #ede6df;
+  --surface: #faf7f4;
+  --surface-hover: #f0ebe5;
+  --text: #2c1810;
+  --text-dim: #6b5344;
+  --text-faint: #b8a99a;
+  --accent: #8b5e3c;
+  --accent-dim: #d4c4b0;
+  --well-glow: rgba(139, 94, 60, 0.05);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html, body {
+html {
+  height: 100%;
+}
+
+body {
   height: 100%;
   background: var(--void);
   color: var(--text);
@@ -252,6 +270,50 @@ html, body {
   font-size: 11px;
   color: var(--text-faint);
   opacity: 0.5;
+}
+
+/* === THEME TOGGLE === */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--text-faint);
+  border-radius: 3px;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px 8px;
+  line-height: 1;
+  transition: all 0.2s;
+  margin-left: 12px;
+}
+
+.theme-toggle:hover {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+}
+
+/* Paper theme — falling items get paper texture */
+body[data-theme="paper"] .falling-item {
+  background: var(--surface);
+  box-shadow: 1px 2px 4px rgba(44, 24, 16, 0.1);
+  border-color: var(--text-faint);
+}
+
+/* Paper theme — void becomes a soft gradient */
+body[data-theme="paper"] .the-void {
+  background: linear-gradient(
+    to bottom,
+    var(--void) 0%,
+    var(--void-deep) 40%,
+    #e4dbd3 100%
+  );
+}
+
+/* Paper theme — findings cards get paper feel */
+body[data-theme="paper"] .topic-card {
+  border: 1px solid var(--text-faint);
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 2px 3px 8px rgba(44, 24, 16, 0.06);
 }
 
 /* === RESPONSIVE === */

@@ -11,8 +11,34 @@
 <body>
     <nav class="nav">
         <a href="/" class="nav-brand">the well</a>
-        <a href="/findings" class="nav-link">findings</a>
+        <div style="display:flex;align-items:center;gap:0">
+            <a href="/findings" class="nav-link">findings</a>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme"></button>
+        </div>
     </nav>
+    <script>
+        (function() {
+            var btn = document.getElementById('theme-toggle');
+            var theme = localStorage.getItem('theme') || 'dark';
+
+            function apply(t) {
+                if (t === 'paper') {
+                    document.body.setAttribute('data-theme', 'paper');
+                } else {
+                    document.body.removeAttribute('data-theme');
+                }
+                btn.textContent = t === 'paper' ? '\u263D' : '\u2600';
+            }
+
+            apply(theme);
+
+            btn.addEventListener('click', function() {
+                theme = theme === 'dark' ? 'paper' : 'dark';
+                localStorage.setItem('theme', theme);
+                apply(theme);
+            });
+        })();
+    </script>
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}
 </body>
