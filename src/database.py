@@ -62,6 +62,25 @@ def insert_drop(content: str) -> dict:
     return dict(row)
 
 
+def insert_drops_bulk(drops: list[dict]) -> int:
+    conn = get_connection()
+    try:
+        for drop in drops:
+            content = drop["content"]
+            content_type = drop.get("content_type") or classify_content(content)
+            conn.execute(
+                "INSERT INTO drops (content, content_type) VALUES (?, ?)",
+                (content, content_type),
+            )
+        conn.commit()
+        return len(drops)
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def count_drops() -> int:
     conn = get_connection()
     row = conn.execute("SELECT COUNT(*) as cnt FROM drops").fetchone()

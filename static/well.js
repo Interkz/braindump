@@ -103,3 +103,87 @@ function updateCounter() {
     COUNTER.textContent = `${dropCount} in the well`;
   }
 }
+
+// === BULK IMPORT ===
+const IMPORT_BTN = document.querySelector('.import-btn');
+const IMPORT_OVERLAY = document.querySelector('.import-overlay');
+const IMPORT_CLOSE = document.querySelector('.import-close');
+const IMPORT_FILE = document.querySelector('.import-file');
+const IMPORT_SUBMIT = document.querySelector('.import-submit');
+const IMPORT_STATUS = document.querySelector('.import-status');
+
+IMPORT_BTN?.addEventListener('click', () => {
+  IMPORT_OVERLAY.hidden = false;
+  IMPORT_FILE.value = '';
+  IMPORT_SUBMIT.disabled = true;
+  IMPORT_STATUS.textContent = '';
+});
+
+IMPORT_CLOSE?.addEventListener('click', () => {
+  IMPORT_OVERLAY.hidden = true;
+});
+
+IMPORT_OVERLAY?.addEventListener('click', (e) => {
+  if (e.target === IMPORT_OVERLAY) IMPORT_OVERLAY.hidden = true;
+});
+
+IMPORT_FILE?.addEventListener('change', () => {
+  const file = IMPORT_FILE.files[0];
+  if (!file) {
+    IMPORT_SUBMIT.disabled = true;
+    IMPORT_STATUS.textContent = '';
+    return;
+  }
+  IMPORT_STATUS.textContent = file.name;
+  IMPORT_SUBMIT.disabled = false;
+});
+
+IMPORT_SUBMIT?.addEventListener('click', async () => {
+  const file = IMPORT_FILE.files[0];
+  if (!file) return;
+
+  IMPORT_SUBMIT.disabled = true;
+  IMPORT_STATUS.textContent = 'importing...';
+
+  try {
+    const text = await file.text();
+    let drops;
+
+    if (file.name.endsWith('.json')) {
+      const data = JSON.parse(text);
+      drops = Array.isArray(data.drops) ? data.drops : Array.isArray(data) ? data.map(d => typeof d === 'string' ? { content: d } : d) : [];
+    } else {
+      drops = text.split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(content => ({ content }));
+    }
+
+    if (drops.length === 0) {
+      IMPORT_STATUS.textContent = 'no drops found in file';
+      IMPORT_SUBMIT.disabled = false;
+      return;
+    }
+
+    const resp = await fetch('/api/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drops }),
+    });
+
+    if (resp.ok) {
+      const result = await resp.json();
+      IMPORT_STATUS.textContent = `${result.imported} drops imported`;
+      dropCount += result.imported;
+      updateCounter();
+      setTimeout(() => { IMPORT_OVERLAY.hidden = true; }, 1500);
+    } else {
+      const err = await resp.json().catch(() => ({}));
+      IMPORT_STATUS.textContent = err.error || 'import failed';
+      IMPORT_SUBMIT.disabled = false;
+    }
+  } catch (err) {
+    IMPORT_STATUS.textContent = 'error reading file';
+    IMPORT_SUBMIT.disabled = false;
+  }
+});
