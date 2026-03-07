@@ -234,6 +234,131 @@ html, body {
   margin-top: 8px;
 }
 
+/* === TAGS === */
+.tags-section {
+  margin-bottom: 48px;
+}
+
+.tags-label {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--text-faint);
+  border-radius: 16px;
+  padding: 5px 12px;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.tag-pill:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-dim);
+}
+
+.tag-pill--active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.tag-pill--small {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.tag-count {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* === FILTERED DROPS === */
+.filtered-drops {
+  margin-bottom: 48px;
+}
+
+.filtered-header {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtered-tag {
+  color: var(--accent);
+}
+
+.clear-filter {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-decoration: none;
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--text-faint);
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.clear-filter:hover {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+}
+
+.drop-card {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.drop-card:last-child {
+  border-bottom: none;
+}
+
+.drop-content {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.drop-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drop-time {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
 .empty-state {
   text-align: center;
   padding: 120px 24px;

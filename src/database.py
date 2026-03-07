@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -36,6 +37,17 @@ def init_db():
             topic_id INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
             relevance REAL NOT NULL DEFAULT 1.0,
             PRIMARY KEY (drop_id, topic_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS drop_tags (
+            drop_id INTEGER NOT NULL REFERENCES drops(id) ON DELETE CASCADE,
+            tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+            PRIMARY KEY (drop_id, tag_id)
         );
     """)
     conn.close()
@@ -106,3 +118,65 @@ def get_topic_with_drops(topic_id: int) -> dict | None:
     """, (topic_id,)).fetchall()
     conn.close()
     return {"topic": dict(topic), "drops": [dict(d) for d in drops]}
+
+
+def extract_tags(content: str) -> list[str]:
+    return list(dict.fromkeys(
+        tag.lower() for tag in re.findall(r"#(\w+)", content)
+    ))
+
+
+def insert_tags(drop_id: int, tags: list[str]):
+    if not tags:
+        return
+    conn = get_connection()
+    for tag_name in tags:
+        conn.execute("INSERT OR IGNORE INTO tags (name) VALUES (?)", (tag_name,))
+        tag_id = conn.execute(
+            "SELECT id FROM tags WHERE name = ?", (tag_name,)
+        ).fetchone()["id"]
+        conn.execute(
+            "INSERT OR IGNORE INTO drop_tags (drop_id, tag_id) VALUES (?, ?)",
+            (drop_id, tag_id),
+        )
+    conn.commit()
+    conn.close()
+
+
+def get_drops_by_tag(tag: str) -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT d.*
+        FROM drops d
+        JOIN drop_tags dt ON d.id = dt.drop_id
+        JOIN tags t ON dt.tag_id = t.id
+        WHERE t.name = ?
+        ORDER BY d.dropped_at DESC
+    """, (tag.lower(),)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_all_tags() -> list[dict]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT t.name, COUNT(dt.drop_id) as drop_count
+        FROM tags t
+        LEFT JOIN drop_tags dt ON t.id = dt.tag_id
+        GROUP BY t.id
+        ORDER BY drop_count DESC, t.name
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_tags_for_drop(drop_id: int) -> list[str]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT t.name FROM tags t
+        JOIN drop_tags dt ON t.id = dt.tag_id
+        WHERE dt.drop_id = ?
+        ORDER BY t.name
+    """, (drop_id,)).fetchall()
+    conn.close()
+    return [r["name"] for r in rows]

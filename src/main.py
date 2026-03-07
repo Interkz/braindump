@@ -36,9 +36,13 @@ async def well(request: Request):
 
 @app.post("/api/drop")
 async def drop(payload: DropRequest, background_tasks: BackgroundTasks):
-    drop = db.insert_drop(payload.content.strip())
+    content = payload.content.strip()
+    drop = db.insert_drop(content)
+    tags = db.extract_tags(content)
+    if tags:
+        db.insert_tags(drop["id"], tags)
     background_tasks.add_task(processor.process_drops)
-    return JSONResponse({"status": "ok", "drop": drop})
+    return JSONResponse({"status": "ok", "drop": drop, "tags": tags})
 
 
 @app.get("/api/drops")
@@ -51,9 +55,21 @@ async def get_drops(limit: int = 50, count_only: bool = False):
 
 
 @app.get("/findings", response_class=HTMLResponse)
-async def findings_page(request: Request):
+async def findings_page(request: Request, tag: str | None = None):
     topics = db.get_topics_with_summaries()
-    return templates.TemplateResponse("findings.html", {"request": request, "topics": topics})
+    all_tags = db.get_all_tags()
+    drops = []
+    if tag:
+        drops = db.get_drops_by_tag(tag)
+        for d in drops:
+            d["tags"] = db.get_tags_for_drop(d["id"])
+    return templates.TemplateResponse("findings.html", {
+        "request": request,
+        "topics": topics,
+        "all_tags": all_tags,
+        "active_tag": tag,
+        "drops": drops,
+    })
 
 
 @app.get("/api/findings")
@@ -68,6 +84,20 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.get("/api/tags")
+async def get_tags():
+    tags = db.get_all_tags()
+    return JSONResponse({"tags": tags})
+
+
+@app.get("/api/tags/{tag}")
+async def get_tag_drops(tag: str):
+    drops = db.get_drops_by_tag(tag)
+    for d in drops:
+        d["tags"] = db.get_tags_for_drop(d["id"])
+    return JSONResponse({"tag": tag, "drops": drops})
 
 
 @app.post("/api/process")
