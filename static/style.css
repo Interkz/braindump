@@ -21,6 +21,10 @@ html, body {
   background: var(--void);
   color: var(--text);
   font-family: var(--font-sans);
+}
+
+/* Only hide overflow on the well page */
+body:has(.well-container) {
   overflow: hidden;
 }
 
@@ -234,12 +238,155 @@ html, body {
   margin-top: 8px;
 }
 
+.findings-hint {
+  font-size: 10px;
+  color: var(--text-faint);
+  opacity: 0.5;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+.topic-drops {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--text-faint);
+}
+
+.topic-drop-item {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 6px 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.topic-drop-item + .topic-drop-item {
+  border-top: 1px solid var(--surface);
+}
+
 .empty-state {
   text-align: center;
   padding: 120px 24px;
   color: var(--text-faint);
   font-family: var(--font);
   font-size: 14px;
+}
+
+/* === RECENT DROPS LIST === */
+.recent-drops {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 10;
+  max-height: 40vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-faint) transparent;
+}
+
+.recent-drops::-webkit-scrollbar {
+  width: 4px;
+}
+
+.recent-drops::-webkit-scrollbar-thumb {
+  background: var(--text-faint);
+  border-radius: 2px;
+}
+
+.recent-drops-label {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 16px 0 8px;
+  opacity: 0.6;
+}
+
+.drop-item {
+  padding: 10px 12px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-dim);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+}
+
+.drop-item:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.drop-item[aria-selected="true"],
+.drop-item:focus-visible {
+  color: var(--text);
+  background: var(--surface);
+  border-left-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-dim);
+}
+
+.drop-item-content {
+  display: inline;
+}
+
+.drop-item-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-left: 12px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.drop-item[aria-selected="true"] .drop-item-meta,
+.drop-item:hover .drop-item-meta {
+  opacity: 1;
+}
+
+.drop-item-expanded {
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* === KEYBOARD NAV ZONE INDICATORS === */
+[data-nav-zone].nav-zone-active {
+  outline: 1px solid var(--accent-dim);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* === FINDINGS KEYBOARD NAV === */
+.topic-card[tabindex] {
+  outline: none;
+  border-left: 2px solid transparent;
+  padding-left: 16px;
+  transition: all 0.15s;
+}
+
+.topic-card[aria-selected="true"],
+.topic-card:focus-visible {
+  border-left-color: var(--accent);
+  background: var(--surface);
+  padding: 16px;
+  margin-left: -16px;
+  margin-right: -16px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--accent-dim);
+}
+
+/* Nav links keyboard focus */
+.nav-link:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-dim);
 }
 
 /* === DROP COUNT (subtle) === */
@@ -261,8 +408,5 @@ html, body {
   }
   .drop-input {
     font-size: 16px;
-  }
-  .the-void {
-    top: calc(20vh + 70px);
   }
 }

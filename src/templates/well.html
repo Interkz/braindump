@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="well-container">
-    <div class="drop-zone">
+    <div class="drop-zone" data-nav-zone="input">
         <input
             type="text"
             class="drop-input"
@@ -10,7 +10,9 @@
             autocomplete="off"
             autofocus
         >
-        <div class="drop-hint">press enter — it falls into the well</div>
+        <div class="drop-hint">press enter — it falls into the well  |  arrows/j/k to browse  |  tab to switch zones</div>
+    </div>
+    <div class="recent-drops" data-nav-zone="drops" role="listbox" aria-label="Recent drops">
     </div>
     <div class="the-void"></div>
     <div class="drop-counter"></div>
