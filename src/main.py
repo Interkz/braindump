@@ -42,11 +42,11 @@ async def drop(payload: DropRequest, background_tasks: BackgroundTasks):
 
 
 @app.get("/api/drops")
-async def get_drops(limit: int = 50, count_only: bool = False):
+async def get_drops(limit: int = 50, count_only: bool = False, range: str | None = None):
     if count_only:
-        count = db.count_drops()
+        count = db.count_drops(time_range=range)
         return JSONResponse({"count": count})
-    drops = db.get_recent_drops(limit)
+    drops = db.get_recent_drops(limit, time_range=range)
     return JSONResponse({"drops": drops})
 
 

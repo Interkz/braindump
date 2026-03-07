@@ -6,11 +6,22 @@ const INPUT = document.querySelector('.drop-input');
 const COUNTER = document.querySelector('.drop-counter');
 
 let dropCount = 0;
+let activeRange = 'all';
 
 // Focus input on load
 window.addEventListener('load', () => {
   INPUT?.focus();
   loadDropCount();
+});
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('.filter-btn.active')?.classList.remove('active');
+    btn.classList.add('active');
+    activeRange = btn.dataset.range;
+    loadDropCount();
+  });
 });
 
 // Also focus on any click in the well area
@@ -84,7 +95,11 @@ async function sendDrop(content) {
 
 async function loadDropCount() {
   try {
-    const resp = await fetch('/api/drops?count_only=true');
+    const params = new URLSearchParams({ count_only: 'true' });
+    if (activeRange && activeRange !== 'all') {
+      params.set('range', activeRange);
+    }
+    const resp = await fetch(`/api/drops?${params}`);
     if (resp.ok) {
       const data = await resp.json();
       dropCount = data.count || 0;

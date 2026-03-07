@@ -242,6 +242,42 @@ html, body {
   font-size: 14px;
 }
 
+/* === TIME FILTER === */
+.time-filter {
+  position: fixed;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+}
+
+.filter-btn {
+  background: transparent;
+  border: 1px solid var(--text-faint);
+  color: var(--text-faint);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+}
+
+.filter-btn.active {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: rgba(74, 158, 255, 0.05);
+}
+
 /* === DROP COUNT (subtle) === */
 .drop-counter {
   position: fixed;
