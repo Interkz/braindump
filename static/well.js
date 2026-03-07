@@ -4,6 +4,7 @@
 const VOID = document.querySelector('.the-void');
 const INPUT = document.querySelector('.drop-input');
 const COUNTER = document.querySelector('.drop-counter');
+const TOPICS_EL = document.getElementById('recent-topics');
 
 let dropCount = 0;
 
@@ -11,6 +12,7 @@ let dropCount = 0;
 window.addEventListener('load', () => {
   INPUT?.focus();
   loadDropCount();
+  loadRecentTopics();
 });
 
 // Also focus on any click in the well area
@@ -77,6 +79,8 @@ async function sendDrop(content) {
     if (!resp.ok) {
       console.error('Drop failed:', resp.status);
     }
+    // Refresh topics after background processing has time to run
+    setTimeout(loadRecentTopics, 3000);
   } catch (err) {
     console.error('Drop error:', err);
   }
@@ -102,4 +106,34 @@ function updateCounter() {
   } else {
     COUNTER.textContent = `${dropCount} in the well`;
   }
+}
+
+async function loadRecentTopics() {
+  if (!TOPICS_EL) return;
+  try {
+    const resp = await fetch('/api/topics/recent?limit=5');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const topics = data.topics || [];
+    if (topics.length === 0) {
+      TOPICS_EL.innerHTML = '';
+      return;
+    }
+    TOPICS_EL.innerHTML =
+      '<div class="recent-topics-title">recent topics</div>' +
+      topics.map(t =>
+        `<a href="/findings#topic-${t.id}" class="recent-topic-item">` +
+          `<span class="recent-topic-name">${escapeHtml(t.name)}</span>` +
+          `<span class="recent-topic-count">${t.drop_count}</span>` +
+        `</a>`
+      ).join('');
+  } catch (err) {
+    // Silent — sidebar is non-essential
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
