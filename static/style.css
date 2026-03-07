@@ -234,6 +234,57 @@ html, body {
   margin-top: 8px;
 }
 
+/* === WORD CLOUD === */
+.word-cloud {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--text-faint);
+  line-height: 2.2;
+}
+
+.word-cloud-word {
+  display: inline-block;
+  margin: 0 8px;
+  font-family: var(--font);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.2s;
+  vertical-align: middle;
+}
+
+.word-cloud-word:hover {
+  color: var(--accent);
+}
+
+.word-cloud-word.active {
+  color: var(--accent);
+}
+
+.topic-card.hidden {
+  display: none;
+}
+
+.word-cloud-clear {
+  display: none;
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-faint);
+  cursor: pointer;
+  margin-top: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.2s;
+}
+
+.word-cloud-clear:hover {
+  color: var(--text-dim);
+}
+
+.word-cloud-clear.visible {
+  display: block;
+}
+
 .empty-state {
   text-align: center;
   padding: 120px 24px;

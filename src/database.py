@@ -91,6 +91,13 @@ def get_topics_with_summaries() -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_all_drop_contents() -> list[str]:
+    conn = get_connection()
+    rows = conn.execute("SELECT content FROM drops").fetchall()
+    conn.close()
+    return [r["content"] for r in rows]
+
+
 def get_topic_with_drops(topic_id: int) -> dict | None:
     conn = get_connection()
     topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()

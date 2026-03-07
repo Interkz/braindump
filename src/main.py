@@ -5,6 +5,8 @@ from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from collections import Counter
+
 from pydantic import BaseModel
 
 from . import database as db
@@ -68,6 +70,16 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.get("/api/keywords")
+async def get_keywords(limit: int = 30):
+    contents = db.get_all_drop_contents()
+    counts: Counter[str] = Counter()
+    for content in contents:
+        counts.update(processor.extract_keywords(content))
+    top = [{"word": w, "count": c} for w, c in counts.most_common(limit)]
+    return JSONResponse({"keywords": top})
 
 
 @app.post("/api/process")
