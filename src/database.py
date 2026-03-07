@@ -28,6 +28,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             summary TEXT,
+            archived BOOLEAN NOT NULL DEFAULT 0,
             updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
         );
 
@@ -38,6 +39,12 @@ def init_db():
             PRIMARY KEY (drop_id, topic_id)
         );
     """)
+    # Add archived column if missing (existing databases)
+    cursor = conn.execute("PRAGMA table_info(topics)")
+    columns = [row["name"] for row in cursor.fetchall()]
+    if "archived" not in columns:
+        conn.execute("ALTER TABLE topics ADD COLUMN archived BOOLEAN NOT NULL DEFAULT 0")
+        conn.commit()
     conn.close()
 
 
@@ -78,17 +85,45 @@ def get_recent_drops(limit: int = 50) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def get_topics_with_summaries() -> list[dict]:
+def get_topics_with_summaries(include_archived: bool = False) -> list[dict]:
+    conn = get_connection()
+    query = """
+        SELECT t.*, COUNT(dt.drop_id) as drop_count
+        FROM topics t
+        LEFT JOIN drop_topics dt ON t.id = dt.topic_id
+    """
+    if not include_archived:
+        query += " WHERE t.archived = 0"
+    query += " GROUP BY t.id ORDER BY t.updated_at DESC"
+    rows = conn.execute(query).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_archived_topics() -> list[dict]:
     conn = get_connection()
     rows = conn.execute("""
         SELECT t.*, COUNT(dt.drop_id) as drop_count
         FROM topics t
         LEFT JOIN drop_topics dt ON t.id = dt.topic_id
+        WHERE t.archived = 1
         GROUP BY t.id
         ORDER BY t.updated_at DESC
     """).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def archive_topic(topic_id: int, archive: bool = True) -> dict | None:
+    conn = get_connection()
+    conn.execute(
+        "UPDATE topics SET archived = ? WHERE id = ?",
+        (1 if archive else 0, topic_id),
+    )
+    conn.commit()
+    topic = conn.execute("SELECT * FROM topics WHERE id = ?", (topic_id,)).fetchone()
+    conn.close()
+    return dict(topic) if topic else None
 
 
 def get_topic_with_drops(topic_id: int) -> dict | None:

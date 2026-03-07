@@ -211,6 +211,72 @@ html, body {
   margin-bottom: 48px;
 }
 
+.topic-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.archive-btn {
+  background: none;
+  border: 1px solid var(--text-faint);
+  color: var(--text-faint);
+  font-family: var(--font);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.archive-btn:hover {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+}
+
+.topic-card.archived {
+  opacity: 0.6;
+}
+
+.archived-section {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--text-faint);
+}
+
+.archived-toggle {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-family: var(--font);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.archived-toggle:hover {
+  color: var(--text-dim);
+}
+
+.archived-arrow {
+  font-size: 9px;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.archived-list {
+  margin-top: 32px;
+}
+
 .topic-name {
   font-family: var(--font);
   font-size: 14px;
