@@ -10,6 +10,16 @@ from pydantic import BaseModel
 from . import database as db
 from . import processor
 
+
+class TopicGroup(BaseModel):
+    name: str
+    summary: str = ""
+    drop_ids: list[int]
+
+
+class SplitRequest(BaseModel):
+    groups: list[TopicGroup]
+
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent.parent / "static"
 
@@ -68,6 +78,21 @@ async def get_finding(topic_id: int):
     if not result:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
     return JSONResponse(result)
+
+
+@app.post("/api/topics/{topic_id}/split")
+async def split_topic(topic_id: int, payload: SplitRequest):
+    if len(payload.groups) < 2:
+        return JSONResponse(
+            {"error": "Must provide at least 2 groups to split into"},
+            status_code=400,
+        )
+    try:
+        groups = [g.model_dump() for g in payload.groups]
+        new_topics = db.split_topic(topic_id, groups)
+        return JSONResponse({"status": "ok", "new_topics": new_topics})
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=404)
 
 
 @app.post("/api/process")

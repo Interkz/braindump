@@ -106,3 +106,93 @@ def get_topic_with_drops(topic_id: int) -> dict | None:
     """, (topic_id,)).fetchall()
     conn.close()
     return {"topic": dict(topic), "drops": [dict(d) for d in drops]}
+
+
+def split_topic(source_topic_id: int, groups: list[dict]) -> list[dict]:
+    """Split a topic into multiple new topics.
+
+    Args:
+        source_topic_id: The topic to split.
+        groups: List of dicts, each with 'name', 'summary' (optional), and 'drop_ids'.
+
+    Returns:
+        List of newly created topic dicts.
+    """
+    conn = get_connection()
+
+    # Verify source topic exists
+    source = conn.execute("SELECT * FROM topics WHERE id = ?", (source_topic_id,)).fetchone()
+    if not source:
+        conn.close()
+        raise ValueError(f"Topic {source_topic_id} not found")
+
+    # Get all drop IDs currently in this topic
+    current_drops = conn.execute(
+        "SELECT drop_id FROM drop_topics WHERE topic_id = ?", (source_topic_id,)
+    ).fetchall()
+    current_drop_ids = {row["drop_id"] for row in current_drops}
+
+    # Validate that all provided drop IDs belong to this topic
+    all_specified_ids = set()
+    for group in groups:
+        for did in group["drop_ids"]:
+            if did not in current_drop_ids:
+                conn.close()
+                raise ValueError(f"Drop {did} does not belong to topic {source_topic_id}")
+            all_specified_ids.add(did)
+
+    new_topics = []
+    for group in groups:
+        name = group["name"]
+        summary = group.get("summary", "")
+        drop_ids = group["drop_ids"]
+        if not drop_ids:
+            continue
+
+        # Create new topic
+        cursor = conn.execute(
+            "INSERT INTO topics (name, summary) VALUES (?, ?)",
+            (name, summary),
+        )
+        new_topic_id = cursor.lastrowid
+
+        # Move drops from old topic to new topic
+        for did in drop_ids:
+            # Get existing relevance
+            rel_row = conn.execute(
+                "SELECT relevance FROM drop_topics WHERE drop_id = ? AND topic_id = ?",
+                (did, source_topic_id),
+            ).fetchone()
+            relevance = rel_row["relevance"] if rel_row else 1.0
+
+            # Remove from source topic
+            conn.execute(
+                "DELETE FROM drop_topics WHERE drop_id = ? AND topic_id = ?",
+                (did, source_topic_id),
+            )
+            # Add to new topic
+            conn.execute(
+                "INSERT INTO drop_topics (drop_id, topic_id, relevance) VALUES (?, ?, ?)",
+                (did, new_topic_id, relevance),
+            )
+
+        new_topics.append({"id": new_topic_id, "name": name, "summary": summary, "drop_count": len(drop_ids)})
+
+    # Check if source topic has any remaining drops
+    remaining = conn.execute(
+        "SELECT COUNT(*) as cnt FROM drop_topics WHERE topic_id = ?", (source_topic_id,)
+    ).fetchone()
+
+    if remaining["cnt"] == 0:
+        # Delete the now-empty source topic
+        conn.execute("DELETE FROM topics WHERE id = ?", (source_topic_id,))
+    else:
+        # Update the source topic's timestamp
+        conn.execute(
+            "UPDATE topics SET updated_at = datetime('now') WHERE id = ?",
+            (source_topic_id,),
+        )
+
+    conn.commit()
+    conn.close()
+    return new_topics
