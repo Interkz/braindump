@@ -1,8 +1,17 @@
+import os
+import shutil
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "braindump.db"
+_REPO_DB = Path(__file__).parent.parent / "braindump.db"
+
+if os.environ.get("VERCEL"):
+    DB_PATH = Path("/tmp/braindump.db")
+    if not DB_PATH.exists() and _REPO_DB.exists():
+        shutil.copy2(str(_REPO_DB), str(DB_PATH))
+else:
+    DB_PATH = _REPO_DB
 
 
 def get_connection() -> sqlite3.Connection:
